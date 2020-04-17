@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<!-- 
+ This code is published under CC BY-NC-ND 4.0
+ (https://creativecommons.org/licenses/by-nc-nd/4.0)
+ 
+ Please contribute to the current project.
+ 
+ @author: pdulvp@laposte.net
+-->
+   
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="popup.css"/>
+  </head>
+<body class="dialog">
+  <div class="dialog-zone">
+    <div id="left" class="resizeable-hpane left-pane" tabindex="0" ></div>
+    <div class="resizeable-hpane right-pane">
+      <div class="block">
+        <label for="fname">Site:</label>
+      <input type="text" id="field-sitematch" name="fname"/>
+      <button title="Execute current rule on the given tab" id="button-inspect" data-menu="popup-menu">&nbsp;</button>
+    </div>
+
+    <div id="table-cache" class="table-cache" tabindex="1" ><div class="table-header">
+        <div class="table-column table-column-icon"></div>
+        <div class="table-column table-column-name">Name</div>
+        <div class="table-column table-column-xpath">XPath</div>
+        <div class="table-column table-column-value">Value</div>
+    </div>
+    </div>
+
+  </div>
+  <div id="popup-menu" class="popup-menu">
+  </div>
+  <div class="button-bar">
+    <button id="button-new">New</button>
+    <button id="button-load-default">Open</button>
+    <button id="button-cancel" class="button-right">Cancel</button>
+    <button id="button-ok" class="button-right">OK</button>
+  </div>
+  
+  <script src="ui-helper.js"></script>
+  <script src="options.js"></script>
+
+</body>
+
+</html>

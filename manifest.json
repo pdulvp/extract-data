@@ -1,0 +1,59 @@
+{
+  "manifest_version": 2,
+  "name": "Extract Data",
+  "author": "pdulvp@laposte.net",
+  "version": "1.0",
+  "homepage_url": "https://github.com/pdulvp/extract-data",
+  "description": "This extension allows to scrap tabs and ease extraction of page content data",
+
+  "applications": {
+	  "gecko": {
+		"id": "1affb545-f499-4643-92dc-a9ef3123c170@pdulvp",
+		"strict_min_version": "75.0"
+	  }
+	},
+
+  "icons": {
+    "48": "icons/icon.svg",
+    "32": "icons/icon.svg"
+  },
+
+  "permissions": [
+	  "<all_urls>",
+	  "storage",
+    "clipboardWrite",
+    "activeTab",
+    "contextMenus",
+	  "tabs"
+  ],
+  
+  
+  "browser_action": {
+    "browser_style": true,
+    "default_icon": "icons/icon.svg",
+    "default_title": "Extract Data",
+    "default_popup": "ui/popup.html", 
+    
+    "theme_icons": [{ 
+        "light": "icons/icon-dark.svg",
+        "dark": "icons/icon.svg",
+        "size": 32
+      }, {
+        "light": "icons/icon-dark.svg",
+        "dark": "icons/icon.svg",
+        "size": 16
+      }]
+  },
+  
+  "background": {
+    "scripts": [ "background.js", "ui-helper.js" ]
+  }, 
+
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["content_scripts/content-script.js"]
+    }
+  ]
+
+}
