@@ -87,14 +87,7 @@ input {
 .table-column-name { width: 130px }
 .table-column-xpath { width: 200px; border:0px; }
 .table-column-value { width: 100px; text-align: center; }
-input[readonly] {
-  background-color: inherit;
-  color: inherit;
-}
-input[readonly]:hover {
-  background-color: inherit;
-  color: inherit;
-}
+
 .table-column-xpath, .table-column-value {
   flex-grow: 1; -webkit-flex-grow: 1;
   overflow: hidden;
@@ -131,10 +124,6 @@ input[readonly]:hover {
   float: right;
 }
 
-.left-pane {
-  width: 200px;
-  background-color: rgb(255, 255, 255);
-}
 .block {
   display:block;
   margin-bottom:10px;
@@ -159,12 +148,37 @@ input[readonly]:hover {
   display: inline-block;
 }
 
+.left-pane {
+  width: 200px;
+  background-color: rgb(255, 255, 255);
+}
+
+.left-pane input {
+  border: 0px;
+  width: -moz-available;
+  width: -webkit-fill-available;  
+}
+
 .left-pane-item {
   cursor: default;
   display: block;
   padding: 6px;
   background-color: rgb(255, 255, 255);
 }
+
+input[readonly] {
+  color: inherit;
+}
+input[readonly]:hover {
+  color: inherit;
+}
+input[readonly].active {
+  color: inherit;
+}
+input[readonly].active:hover {
+  color: inherit;
+}
+
 .left-pane-item.active {
   background-color: var(--row-active);
 }

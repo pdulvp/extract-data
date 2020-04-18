@@ -16,30 +16,82 @@ function updateRules(response, value, ccc) {
 		left.removeChild(left.lastChild);
 	}
 	rules.forEach(rule => {
-		var item = createItem(rule.name);
+		var item = createRuleEntry(rule.name);
 		item.setAttribute("rule-id", rule.id);
 		left.appendChild(item);
 	});
 	Array.from(left.childNodes).filter(x => activeIds.includes(x.getAttribute("rule-id"))).forEach(x => addClass(x, "active"));
 }
 
+let currentEditor = null;
+
+function editorStartEdit(event) {
+	editorCancelEdit();
+	if (event.target.hasAttribute("readonly")) {
+		event.target.removeAttribute("readonly");
+		event.target.addEventListener("focusout", editorValidEdit, { once: true });
+		event.target.setSelectionRange(0, event.target.value.length);
+		currentEditor = event.target;
+	}
+}
+
+function editorValidEdit(event) {
+	if (currentEditor != null) {
+		var lastActiveId = currentEditor.getAttribute("rule-id");
+		let rule = rules.find(r => r.id == lastActiveId);
+		if (rule != null) {
+			rule.name = currentEditor.value;
+			currentEditor.setAttribute("readonly", "readonly");
+			currentEditor.setSelectionRange(0, 0);
+		}
+		currentEditor = null;
+	}
+}
+
+function editorCancelEdit(event) {
+	if (currentEditor != null) {
+		var lastActiveId = currentEditor.getAttribute("rule-id");
+		let rule = rules.find(r => r.id == lastActiveId);
+		if (rule != null) {
+			currentEditor.value = rule.name;
+			currentEditor.setAttribute("readonly", "readonly");
+			currentEditor.setSelectionRange(0, 0);
+		}
+		currentEditor = null;
+	}
+}
+
 document.getElementById("left").addEventListener("keydown", event => {
-	if (event.code == "Delete") {
+	if (event.code == "Delete" && currentEditor == null) {
 		var left = document.getElementById("left");
 		var ruleIds = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
 		rules = rules.filter(x => !ruleIds.includes(x.id));
 		updateRules({rules: rules});
+		
+	} else if (event.code == "F2") {
+		editorStartEdit(event);
+
+	} else if (event.code == "Enter") {
+		editorValidEdit(event);
+
+	} else if (event.code == "Escape") {
+		editorCancelEdit(event);
+		
 	}
 });
 
-left.onclick = function(event) {
+document.getElementById("left").addEventListener("dblclick", event => {
+	editorStartEdit(event);
+});
+
+document.getElementById("left").addEventListener("click", event => {
 	if (hasClass(event.target, "left-pane-item")) {
 		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 		Array.from(left.childNodes).forEach(x => removeClass(x, "active"));
 		addClass(event.target, "active");
 		clickOnRule(lastActiveId, event.target.getAttribute("rule-id"));
 	}
-};
+});
 
 var table = document.getElementById("table-cache");
 table.onclick = function(event) {
@@ -125,10 +177,11 @@ function saveCurrentRule(ruleId) {
 	}
 }
 
-function createItem(label) {
-    var node = document.createElement("div");
+function createRuleEntry(label) {
+    var node = document.createElement("input");
 	addClass(node, "left-pane-item");
-	node.textContent = label;
+	node.value = label;
+	node.setAttribute("readonly", "readonly");
 	return node;
 }
   
