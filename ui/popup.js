@@ -34,8 +34,8 @@ function updateRules(storage) {
 		sending.then((ree) => {
 			
 			let result = '';
-			if (ree != null && ree.rules != null) {
-				let matchingRules = ree.rules.filter(r => {
+			if (ree != null && ree.result != null) {
+				let matchingRules = ree.result.rulesResults.filter(r => {
 					let rule = findRule(r.id);
 					if (rule == null) {
 						return false;
@@ -55,7 +55,7 @@ function updateRules(storage) {
 
 				let values = matchingRules.map(r => {
 					let rule = findRule(r.id);
-					let items = r.items.filter(x => x.value != null);
+					let items = r.itemsResults.filter(x => x.value != null);
 					if (items.length > 0) {
 						let content = '<div class="tooltip-title">'+rule.name+"</div>";
 						content += items.map(x => {
@@ -110,7 +110,7 @@ function createPanel(content) {
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
 
- document.getElementById("menu-editrules").onclick = function (event) {
+document.getElementById("menu-editrules").onclick = function (event) {
 	let createData = {
 		type: "popup",
 		allowScriptsToClose: true,

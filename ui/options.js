@@ -23,63 +23,6 @@ function updateRules(response, value, ccc) {
 	Array.from(left.childNodes).filter(x => activeIds.includes(x.getAttribute("rule-id"))).forEach(x => addClass(x, "active"));
 }
 
-function registerEditor(element, cancel, save) {
-
-	let currentEditor = null;
-
-	let editorStartEdit = function (event) {
-		editorCancel(event);
-		if (event.target.hasAttribute("readonly")) {
-			event.target.removeAttribute("readonly");
-			event.target.addEventListener("focusout", editorValidate, { once: true });
-			event.target.setSelectionRange(0, event.target.value.length);
-			currentEditor = event.target;
-		}
-	};
-
-	let editorValidate = function (event) {
-		if (currentEditor != null) {
-			save(currentEditor);
-			currentEditor.setAttribute("readonly", "readonly");
-			currentEditor.setSelectionRange(0, 0);
-			currentEditor = null;
-			element.removeEventListener("keydown", keyListener);
-		}
-	}
-
-	let editorCancel = function (event) {
-		if (currentEditor != null) {
-			let value = cancel(currentEditor);
-			currentEditor.value = value;
-			currentEditor.setAttribute("readonly", "readonly");
-			currentEditor.setSelectionRange(0, 0);
-			currentEditor = null;
-			element.removeEventListener("keydown", keyListener);
-		}
-	}
-
-	let keyListener = event => {
-		if (event.code == "Delete" && currentEditor != null) {
-			event.stopImmediatePropagation();
-
-		} else if (event.code == "F2") {
-			editorStartEdit(event);
-
-		} else if (event.code == "Enter") {
-			editorValidate(event);
-
-		} else if (event.code == "Escape") {
-			editorCancel(event);
-		}
-	};
-	
-	element.addEventListener("keydown", keyListener, { capture : true });
-
-	element.addEventListener("dblclick", event => {
-		editorStartEdit(event);
-	});
-}
-
 registerEditor(document.getElementById("left"), editor => {
 	var lastActiveId = editor.getAttribute("rule-id");
 	let rule = rules.find(r => r.id == lastActiveId);
@@ -105,8 +48,6 @@ document.getElementById("left").addEventListener("keydown", event => {
 	}
 });
 
-
-
 document.getElementById("left").addEventListener("click", event => {
 	if (hasClass(event.target, "left-pane-item")) {
 		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
@@ -117,18 +58,16 @@ document.getElementById("left").addEventListener("click", event => {
 });
 
 var table = document.getElementById("table-cache");
-table.onclick = function(event) {
+table.addEventListener("click", event => {
 	let target = event.target;
 	if (hasClass(target, "table-column")) {
 		target = target.parentNode;
 	}
 	if (hasClass(target, "table-row")) {
-		var lastActiveId = Array.from(table.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 		Array.from(table.childNodes).forEach(x => removeClass(x, "active"));
 		addClass(target, "active");
-		//clickOnRule(lastActiveId, target.getAttribute("rule-id"));
 	}
-};
+});
 
 registerEditor(document.getElementById("table-cache"), editor => {
 	var left = document.getElementById("left");
@@ -201,16 +140,16 @@ function clickOnRule(previousRuleId, ruleId) {
 	}
 }
 
-function setResult(element) {
+function setItemResult(itemResult) {
 	var table = document.getElementById("table-cache");
-	var row = Array.from(table.childNodes).find(e => e.id == element.id);
+	var row = Array.from(table.childNodes).find(e => e.id == itemResult.id);
 	let icon = Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column table-column-icon");
 	let value = Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column table-column-value");
 	if (icon) {
-		if (element.valid) {
+		if (itemResult.valid) {
 			addClass(row, "valid");
 			addClass(icon, "icon-valid");
-			value.textContent = element.value;
+			value.textContent = itemResult.value;
 		} else {
 			addClass(row, "warning");
 			addClass(icon, "icon-warning");
@@ -237,7 +176,7 @@ function createRuleEntry(label) {
 	node.setAttribute("readonly", "readonly");
 	return node;
 }
-  
+
 function createCacheEntry(item) {
 	let node = document.createElement("div");
 	node.setAttribute("id", item.id);
@@ -303,10 +242,10 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 		let tab = tabs.filter(x => x.id == tabId).find(x => true);
 		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 		var sending = browser.tabs.sendMessage(tab.id, { "action": "highlight", rule: rules.find(r => r.id == lastActiveId) } );
-		sending.then(elements => {
-			elements.forEach(e => {
-				console.log(e);
-				setResult(e);
+		sending.then(result => {
+			result.rulesResults.find(r => r.id == lastActiveId).itemsResults.forEach(itemResult => {
+				console.log(itemResult);
+				setItemResult(itemResult);
 			});
 		}, x => {});
 		//sendResponse({"response": "wait", "action" : request.action }); 

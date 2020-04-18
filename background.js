@@ -13,11 +13,12 @@ function handleMessage(request, sender, sendResponse) {
 		console.log("background");
 		console.log(request);
 		console.log(sender);
-		results[sender.tab.id] = request.rules;
+		results[sender.tab.id] = request.result;
 		updateBadge(sender.tab.id);
-
+		updateContextMenu(sender.tab);
+		
 	} else if (request.action == "getResult") {
-		sendResponse({rules: results[request.tabId]});
+		sendResponse({result: results[request.tabId]});
 
 	} else if (request.action == "setClickedElement") {
 		updateContextMenu(sender.tab);
@@ -26,7 +27,7 @@ function handleMessage(request, sender, sendResponse) {
 
 function updateBadge(tabId) {
 	if (results[tabId] != null) {
-		let len = results[tabId].length;
+		let len = results[tabId].rulesResults.length;
 		if (len != 0) {
 			browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
 			browser.browserAction.setBadgeTextColor({ color: "#FFFFFF" });
@@ -81,7 +82,6 @@ function createNewRule(event, tabId) {
 }
 
 function createNewItem(event, rule, tabId) {
-	console.log(event);
 	getStoredRules(storage => {
 		let storedRule = storage.rules.find(r => r.id == rule.id);
 		if (storedRule != null) {
@@ -96,10 +96,41 @@ function createNewItem(event, rule, tabId) {
 			}, x => {
 				storeRules( storage );
 			});
-
 		}
 	});
 }
+
+
+function highlightRule(event, rule, tabId) {
+	getStoredRules(storage => {
+		let storedRule = storage.rules.find(r => r.id == rule.id);
+		if (storedRule != null) {
+			var sending = browser.tabs.sendMessage(tabId, { "action": "highlight", rule: storedRule } );
+			sending.then(result => {}, x => {});
+		}
+	});
+}
+
+
+function editItem(event, rule, item, tabId) {
+	getStoredRules(storage => {
+		let storedRule = storage.rules.find(r => r.id == rule.id);
+		if (storedRule != null) {
+			let storedItem = storedRule.items.find(i => i.id == item.id);
+			if (storedItem != null) {
+				var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
+				sending.then(element => {
+					item.xpath = element.xpath;
+					storeRules( storage );
+				}, x => {
+					storeRules( storage );
+				});
+			}
+		}
+	});
+}
+
+
 
 function storeRules(storage) {
 	browser.storage.local.set(storage).then(() => {
@@ -128,11 +159,16 @@ function updateRules(storage) {
 			title: `${rule.name}`,
 			contexts: ["all"],
 		});
-		
 		browser.contextMenus.create({
 			id: `menu-new-item-${rule.id}`,
 			parentId: `menu-${rule.id}`,
 			title: `Create a new item`,
+			contexts: ["all"],
+		});
+		browser.contextMenus.create({
+			id: `menu-highlight-${rule.id}`,
+			parentId: `menu-${rule.id}`,
+			title: `Highlight this rule`,
 			contexts: ["all"],
 		});
 		if (rule.items.length > 0) {
@@ -148,7 +184,7 @@ function updateRules(storage) {
 			browser.contextMenus.create({
 				id: `menu-${item.id}`,
 				parentId: `menu-${rule.id}`,
-				title: `${item.name}`,
+				title: `Change ${item.name}`,
 				contexts: ["all"],
 			});
 		});
@@ -156,6 +192,10 @@ function updateRules(storage) {
 }
 
 function updateContextMenu(tab) {
+
+	
+
+
 	getStoredRules(storage => {
 		let anyMatch = false;
 
@@ -178,12 +218,46 @@ function updateContextMenu(tab) {
 					createNewItem(e, rule, tab.id);
 				}
 			});
-			rule.items.forEach(item => {
-				//let itemValid = tab.url == rule.sitematch;
-				//browser.contextMenus.update(`menu-${item.id}`, {
-				//	icon: "ui/accept.png"
-				//});
+			browser.contextMenus.update(`menu-highlight-${rule.id}`, {
+				onclick: e => {
+					highlightRule(e, rule, tab.id);
+				}
 			});
+			
+			rule.items.forEach(item => {
+				browser.contextMenus.update(`menu-${item.id}`, {
+					onclick: e => {
+						editItem(e, rule, item, tab.id);
+					}
+				});
+			});
+
+			if (results[tab.id] != null) {
+				if (results[tab.id]) {
+					let values = results[tab.id].rulesResults.find(r => r.id == rule.id );
+					if (values != null) {
+						rule.items.forEach(item => {
+							let itemValue = values.itemsResults.find(i => i.id == item.id );
+							if (itemValue != null) {
+								let itemValid = itemValue.value != null;
+								if (itemValid) {
+									browser.contextMenus.update(`menu-${item.id}`, {
+										icons: {  "16": "ui/accept.png" }
+									});
+								} else {
+									browser.contextMenus.update(`menu-${item.id}`, {
+										icons: {  "16": "ui/warning.png" }
+									});
+								}
+							} else {
+								browser.contextMenus.update(`menu-${item.id}`, {
+									icons: {  "16": "ui/warning.png" }
+								});
+							}
+						});
+					}
+				}
+			}
 		});
 
 		browser.contextMenus.update(`menu-new-rule-separator`, {

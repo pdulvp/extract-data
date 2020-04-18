@@ -60,6 +60,7 @@ input {
 
 .table-row, .table-row input {
   background-color: rgb(255, 255, 255);
+  cursor: default;
 }
 .table-row.active, .table-row.active input {
   background-color: var(--row-active);

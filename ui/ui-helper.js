@@ -73,3 +73,61 @@ function copyToClipboard(text, html) {
     // Requires the clipboardWrite permission, or a user gesture:
     document.execCommand("copy");
 }
+
+
+function registerEditor(element, cancel, save) {
+
+	let currentEditor = null;
+
+	let editorStartEdit = function (event) {
+		editorCancel(event);
+		if (event.target.hasAttribute("readonly")) {
+			event.target.removeAttribute("readonly");
+			event.target.addEventListener("focusout", editorValidate, { once: true });
+			event.target.setSelectionRange(0, event.target.value.length);
+			currentEditor = event.target;
+		}
+	};
+
+	let editorValidate = function (event) {
+		if (currentEditor != null) {
+			save(currentEditor);
+			currentEditor.setAttribute("readonly", "readonly");
+			currentEditor.setSelectionRange(0, 0);
+			currentEditor = null;
+			element.removeEventListener("keydown", keyListener);
+		}
+	}
+
+	let editorCancel = function (event) {
+		if (currentEditor != null) {
+			let value = cancel(currentEditor);
+			currentEditor.value = value;
+			currentEditor.setAttribute("readonly", "readonly");
+			currentEditor.setSelectionRange(0, 0);
+			currentEditor = null;
+			element.removeEventListener("keydown", keyListener);
+		}
+	}
+
+	let keyListener = event => {
+		if (event.code == "Delete" && currentEditor != null) {
+			event.stopImmediatePropagation();
+
+		} else if (event.code == "F2") {
+			editorStartEdit(event);
+
+		} else if (event.code == "Enter") {
+			editorValidate(event);
+
+		} else if (event.code == "Escape") {
+			editorCancel(event);
+		}
+	};
+	
+	element.addEventListener("keydown", keyListener, { capture : true });
+
+	element.addEventListener("dblclick", event => {
+		editorStartEdit(event);
+	});
+}
