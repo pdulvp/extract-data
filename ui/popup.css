@@ -43,7 +43,6 @@ input {
   font: message-box;
 }
 
-
 .table-header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   background-color: rgba(0, 0, 0, 0.03);
@@ -56,16 +55,42 @@ input {
   flex-direction: row;    -webkit-flex-direction: row;
   flex-wrap: no-wrap;     -webkit-flex-wrap: no-wrap;
   width: 100%;
+  cursor: default;
 }
-.table-row.active {
+
+.table-row, .table-row input {
+  background-color: rgb(255, 255, 255);
+}
+.table-row.active, .table-row.active input {
   background-color: var(--row-active);
 }
-.table-row.active:hover {
+.table-row.active:hover, .table-row.active:hover input{
   background-color: var(--row-active);
 }
-.table-row:hover {
+.table-row:hover, .table-row:hover input {
   background-color: var(--row-hover);
 }
+
+.table-row input {
+  background-color: transparent;
+}
+.table-row.active input {
+  background-color: transparent;
+}
+.table-row.active:hover input{
+  background-color: transparent;
+}
+.table-row:hover input {
+  background-color: transparent;
+}
+
+.table-row input {
+  border: 0px;
+}
+
+
+
+
 .table-column {
   flex-grow: 0; -webkit-flex-grow: 0;
   flex-shrink: 0; -webkit-flex-shrink: 0;
@@ -131,10 +156,7 @@ input {
 .right-pane {
   padding: 10px;
 }
-.right-pane label {
-  min-width: 80px;
-}
-.right-pane input {
+.right-pane .block input {
   min-width: 300px;
 }
 
@@ -172,10 +194,10 @@ input[readonly] {
 input[readonly]:hover {
   color: inherit;
 }
-input[readonly].active {
+.active > input[readonly], input[readonly].active {
   color: inherit;
 }
-input[readonly].active:hover {
+.active:hover > input[readonly], input[readonly].active:hover {
   color: inherit;
 }
 

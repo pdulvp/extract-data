@@ -23,66 +23,89 @@ function updateRules(response, value, ccc) {
 	Array.from(left.childNodes).filter(x => activeIds.includes(x.getAttribute("rule-id"))).forEach(x => addClass(x, "active"));
 }
 
-let currentEditor = null;
+function registerEditor(element, cancel, save) {
 
-function editorStartEdit(event) {
-	editorCancelEdit();
-	if (event.target.hasAttribute("readonly")) {
-		event.target.removeAttribute("readonly");
-		event.target.addEventListener("focusout", editorValidEdit, { once: true });
-		event.target.setSelectionRange(0, event.target.value.length);
-		currentEditor = event.target;
-	}
-}
+	let currentEditor = null;
 
-function editorValidEdit(event) {
-	if (currentEditor != null) {
-		var lastActiveId = currentEditor.getAttribute("rule-id");
-		let rule = rules.find(r => r.id == lastActiveId);
-		if (rule != null) {
-			rule.name = currentEditor.value;
+	let editorStartEdit = function (event) {
+		editorCancel(event);
+		if (event.target.hasAttribute("readonly")) {
+			event.target.removeAttribute("readonly");
+			event.target.addEventListener("focusout", editorValidate, { once: true });
+			event.target.setSelectionRange(0, event.target.value.length);
+			currentEditor = event.target;
+		}
+	};
+
+	let editorValidate = function (event) {
+		if (currentEditor != null) {
+			save(currentEditor);
 			currentEditor.setAttribute("readonly", "readonly");
 			currentEditor.setSelectionRange(0, 0);
+			currentEditor = null;
+			element.removeEventListener("keydown", keyListener);
 		}
-		currentEditor = null;
 	}
-}
 
-function editorCancelEdit(event) {
-	if (currentEditor != null) {
-		var lastActiveId = currentEditor.getAttribute("rule-id");
-		let rule = rules.find(r => r.id == lastActiveId);
-		if (rule != null) {
-			currentEditor.value = rule.name;
+	let editorCancel = function (event) {
+		if (currentEditor != null) {
+			let value = cancel(currentEditor);
+			currentEditor.value = value;
 			currentEditor.setAttribute("readonly", "readonly");
 			currentEditor.setSelectionRange(0, 0);
+			currentEditor = null;
+			element.removeEventListener("keydown", keyListener);
 		}
-		currentEditor = null;
 	}
+
+	let keyListener = event => {
+		if (event.code == "Delete" && currentEditor != null) {
+			event.stopImmediatePropagation();
+
+		} else if (event.code == "F2") {
+			editorStartEdit(event);
+
+		} else if (event.code == "Enter") {
+			editorValidate(event);
+
+		} else if (event.code == "Escape") {
+			editorCancel(event);
+		}
+	};
+	
+	element.addEventListener("keydown", keyListener, { capture : true });
+
+	element.addEventListener("dblclick", event => {
+		editorStartEdit(event);
+	});
 }
+
+registerEditor(document.getElementById("left"), editor => {
+	var lastActiveId = editor.getAttribute("rule-id");
+	let rule = rules.find(r => r.id == lastActiveId);
+	if (rule != null) {
+		return rule.name;
+	}
+	return "";
+
+}, editor => {
+	var lastActiveId = editor.getAttribute("rule-id");
+	let rule = rules.find(r => r.id == lastActiveId);
+	if (rule != null) {
+		rule.name = editor.value;
+	}
+});
 
 document.getElementById("left").addEventListener("keydown", event => {
-	if (event.code == "Delete" && currentEditor == null) {
+	if (event.code == "Delete") {
 		var left = document.getElementById("left");
 		var ruleIds = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
 		rules = rules.filter(x => !ruleIds.includes(x.id));
 		updateRules({rules: rules});
-		
-	} else if (event.code == "F2") {
-		editorStartEdit(event);
-
-	} else if (event.code == "Enter") {
-		editorValidEdit(event);
-
-	} else if (event.code == "Escape") {
-		editorCancelEdit(event);
-		
 	}
 });
 
-document.getElementById("left").addEventListener("dblclick", event => {
-	editorStartEdit(event);
-});
+
 
 document.getElementById("left").addEventListener("click", event => {
 	if (hasClass(event.target, "left-pane-item")) {
@@ -106,6 +129,36 @@ table.onclick = function(event) {
 		//clickOnRule(lastActiveId, target.getAttribute("rule-id"));
 	}
 };
+
+registerEditor(document.getElementById("table-cache"), editor => {
+	var left = document.getElementById("left");
+	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	let rule = rules.find(r => r.id == lastActiveId);
+	if (rule) {
+		var lastItemId = editor.getAttribute("item-id");
+		var itemData = editor.getAttribute("item-data");
+		let item = rule.items.find(i => i.id == lastItemId);
+		if (item != null) {
+			return item[itemData];
+		}
+	}
+	return "";
+
+}, editor => {
+	var left = document.getElementById("left");
+	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	let rule = rules.find(r => r.id == lastActiveId);
+	if (rule) {
+		var lastItemId = editor.getAttribute("item-id");
+		var itemData = editor.getAttribute("item-data");
+		let item = rule.items.find(i => i.id == lastItemId);
+		if (item != null) {
+			item[itemData] = editor.value;
+		}
+	}
+	return "";
+});
+
 
 document.getElementById("table-cache").addEventListener("keydown", event => {
 	if (event.code == "Delete") {
@@ -196,17 +249,21 @@ function createCacheEntry(item) {
 	child.textContent = item.icon;
 	node.appendChild(child);
 
-	child = document.createElement("div");
+	child = document.createElement("input");
 	addClass(child, "table-column table-column-name");
-	child.textContent = item.name;
+	child.setAttribute("item-id", item.id);
+	child.setAttribute("item-data", "name");
+	child.value = item.name;
+	child.setAttribute("readonly", "readonly");
 	node.appendChild(child);
 
-	child = document.createElement("div");
+	child = document.createElement("input");
 	child.setAttribute("type", "text");
 	addClass(child, "table-column table-column-xpath");
-	child.textContent = item.xpath;
-	//child.setAttribute("readonly", "readonly");
-	//child.setAttribute("disabled", "disabled");
+	child.setAttribute("item-id", item.id);
+	child.setAttribute("item-data", "xpath");
+	child.value = item.xpath;
+	child.setAttribute("readonly", "readonly");
 	node.appendChild(child);
 
 	child = document.createElement("div");
@@ -284,14 +341,14 @@ function clickPopupItem(event) {
 	window.close();
  };
 
- document.getElementById("button-new").onclick = function (event) {
+ document.getElementById("button-new-rule").onclick = function (event) {
 	console.log(rules);
 	let ruleName = "Rule #"+(rules.length+1);
 	rules.push({ id: uuidv4(), name: ruleName, sitematch: "", items: [] });
 	updateRules( { rules: rules } );
  };
 
- document.getElementById("button-load-default").onclick = function (event) {
+ document.getElementById("button-new-item").onclick = function (event) {
 	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
