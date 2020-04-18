@@ -119,3 +119,5 @@ document.addEventListener("mousedown", function(event) {
 		sending.then(x => {}, x => {}); 
     }
 }, true);
+
+browser.storage.onChanged.addListener(restoreOptions);
