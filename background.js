@@ -29,9 +29,22 @@ function updateBadge(tabId) {
 	if (results[tabId] != null) {
 		let len = results[tabId].rulesResults.length;
 		if (len != 0) {
-			browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
 			browser.browserAction.setBadgeTextColor({ color: "#FFFFFF" });
-			browser.browserAction.setBadgeText({ text: ""+len, tabId: tabId });
+			browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
+
+				browser.browserAction.getBadgeText({tabId: tabId}).then(e => {
+					if (e != null && e.length > 0) {
+						browser.browserAction.setBadgeBackgroundColor({ color: "#FF00FF" });
+						browser.browserAction.setBadgeText({ text: ""+len, tabId: tabId });
+						setTimeout(e => {
+							browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
+						}, 200);
+					} else {
+						browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
+						browser.browserAction.setBadgeText({ text: ""+len, tabId: tabId });
+					}
+				});
+			 
 		} else {
 			browser.browserAction.setBadgeText({ text: "", tabId: tabId });
 		}
