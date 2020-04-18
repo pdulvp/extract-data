@@ -7,6 +7,7 @@
  @author: pdulvp@laposte.net
  */
 var Rules = null;
+var Results = null;
 
 function restoreOptions() {
 	browser.storage.local.get('rules').then((res) => {
@@ -32,7 +33,8 @@ function updateRules(storage) {
 		
 		var sending = browser.runtime.sendMessage( { "action": "getResult", "tabId": tabId } );
 		sending.then((ree) => {
-			
+			Results = ree;
+
 			let result = '';
 			if (ree != null && ree.result != null) {
 				let matchingRules = ree.result.rulesResults.filter(r => {
@@ -57,13 +59,13 @@ function updateRules(storage) {
 					let rule = findRule(r.id);
 					let items = r.itemsResults.filter(x => x.value != null);
 					if (items.length > 0) {
-						let content = '<div class="tooltip-title">'+rule.name+"</div>";
+						let content = `<div rule-id="${rule.id}" class="tooltip-title">`+rule.name+"</div>";
 						content += items.map(x => {
 							return `${x.value}`;
 						}).join("<br/>");
-						return `<div class="tooltip-content">${content}</div>`;
+						return `<div rule-id="${rule.id}" class="tooltip-content">${content}</div>`;
 					} else {
-						let content = '<div class="tooltip-title">'+rule.name+"</div>";
+						let content = `<div rule-id="${rule.id}" class="tooltip-title">`+rule.name+"</div>";
 						content += 'No result';
 						return `<div class="tooltip-content">${content}</div>`;
 					}
@@ -97,12 +99,30 @@ function updateRules(storage) {
 	});
 }
 
+function getRuleContent(ruleId) {
+	let content = '';
+	if (Results != null && ruleId != null) {
+		let rule = Results.result.rulesResults.find(r => r.id == ruleId);
+		if (rule != null) {
+			let items = rule.itemsResults.filter(x => x.value != null);
+			if (items.length > 0) {
+				content += items.map(x => {
+					return `${x.value}`;
+				}).join("\n");
+			}
+		}
+	}
+	return content;
+}
+
 function createPanel(content) {
 	let child = document.createElement("div");
 	addClass(child, "panel-tooltip");
 	child.innerHTML = content;
 	child.onclick = function(event) {
-		copyToClipboard(event.target.innerText);
+		let ruleId = event.target.getAttribute("rule-id");
+		let content = getRuleContent(ruleId);
+		copyToClipboard(content);
 		window.close();
 	}
 	return child;
