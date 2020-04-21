@@ -10,9 +10,6 @@ var results = [];
 
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setResult") {
-		console.log("background");
-		console.log(request);
-		console.log(sender);
 		results[sender.tab.id] = request.result;
 		updateBadge(sender.tab.id);
 		updateContextMenu(sender.tab);
@@ -59,7 +56,18 @@ function onStorageChange() {
 	getStoredRules(updateRules);
 }
 
+function onTabChange(activeInfo) {
+	browser.tabs.query({}, (tabs) => {
+		let tab = tabs.filter(x => x.id == activeInfo.tabId).find(x => true);
+		if (tab != undefined) {
+			updateContextMenu(tab);
+		}
+	});
+}
+
 browser.storage.onChanged.addListener(onStorageChange);
+browser.tabs.onActivated.addListener(onTabChange);
+
 onStorageChange();
 
 function getStoredRules(callback) {
@@ -124,6 +132,20 @@ function highlightRule(event, rule, tabId) {
 	});
 }
 
+function editRule(event, rule, tabId) {
+	var popupURL = browser.extension.getURL("ui/options.html");
+
+	let createData = {
+		type: "popup",
+		allowScriptsToClose: true,
+		width: 1200,
+		height: 500,
+		url: popupURL+`?initialRule=${rule.id}`
+	};
+	let creating = browser.windows.create(createData);
+	creating.then(() => {
+	});
+}
 
 function editItem(event, rule, item, tabId) {
 	getStoredRules(storage => {
@@ -146,9 +168,7 @@ function editItem(event, rule, item, tabId) {
 
 
 function storeRules(storage) {
-	browser.storage.local.set(storage).then(() => {
-		console.log("ok");
-	}, (error) => {
+	browser.storage.local.set(storage).then(() => {}, (error) => {
 		console.log(error);
 	});
 }
@@ -157,57 +177,77 @@ function updateRules(storage) {
 	browser.contextMenus.create({
 		id: `menu-new-rule`,
 		title: `Create a new rule`,
-		contexts: ["all"],
+		contexts: ["editable", "frame", "link", "image", "page", "selection"]
 	});
 	if (storage.rules.length > 0) {
 		browser.contextMenus.create({
 			id: `menu-new-rule-separator`,
 			type: "separator",
-			contexts: ["all"],
+			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
 	}
 	storage.rules.forEach(rule => {
 		browser.contextMenus.create({
 			id: `menu-${rule.id}`,
 			title: `${rule.name}`,
-			contexts: ["all"],
+			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
 		browser.contextMenus.create({
 			id: `menu-new-item-${rule.id}`,
 			parentId: `menu-${rule.id}`,
-			title: `Create a new item`,
-			contexts: ["all"],
+			title: `Add a new item`,
+			contexts: ["editable", "frame", "link", "image", "page", "selection"]
+		});
+		browser.contextMenus.create({
+			id: `menu-edit-${rule.id}`,
+			parentId: `menu-${rule.id}`,
+			title: `Edit rule`,
+			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
 		browser.contextMenus.create({
 			id: `menu-highlight-${rule.id}`,
 			parentId: `menu-${rule.id}`,
-			title: `Highlight this rule`,
-			contexts: ["all"],
+			title: `Highlight`,
+			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
 		if (rule.items.length > 0) {
 			browser.contextMenus.create({
 				id: `menu-new-item-separator-${rule.id}`,
 				parentId: `menu-${rule.id}`,
 				type: "separator",
-				contexts: ["all"],
+				contexts: ["editable", "frame", "link", "image", "page", "selection"]
 			});
 		}
 		rule.items.forEach(item => {
-			console.log(item);
 			browser.contextMenus.create({
 				id: `menu-${item.id}`,
 				parentId: `menu-${rule.id}`,
-				title: `Change ${item.name}`,
-				contexts: ["all"],
+				title: `Change '${item.name}'`,
+				contexts: ["editable", "frame", "link", "image", "page", "selection"]
 			});
 		});
 	});
 }
 
+function allowExtension(urlString) {
+	let url = new URL(urlString);
+	if (url.protocol == "mozextension:") {
+		return false;
+	}
+	if (url.protocol == "about:") {
+		return false;
+	}
+	return true;
+}
+
 function updateContextMenu(tab) {
-
-	
-
+	let createRule = allowExtension(tab.url);
+	browser.contextMenus.update(`menu-new-rule`, {
+		onclick: e => {
+			createNewRule(e, tab.id);
+		},
+		visible: createRule
+	});
 
 	getStoredRules(storage => {
 		let anyMatch = false;
@@ -220,12 +260,6 @@ function updateContextMenu(tab) {
 			browser.contextMenus.update(`menu-${rule.id}`, {
 				visible: match
 			});
-			
-			browser.contextMenus.update(`menu-new-rule`, {
-				onclick: e => {
-					createNewRule(e, tab.id);
-				}
-			});
 			browser.contextMenus.update(`menu-new-item-${rule.id}`, {
 				onclick: e => {
 					createNewItem(e, rule, tab.id);
@@ -234,6 +268,11 @@ function updateContextMenu(tab) {
 			browser.contextMenus.update(`menu-highlight-${rule.id}`, {
 				onclick: e => {
 					highlightRule(e, rule, tab.id);
+				}
+			});
+			browser.contextMenus.update(`menu-edit-${rule.id}`, {
+				onclick: e => {
+					editRule(e, rule, tab.id);
 				}
 			});
 			
@@ -274,16 +313,13 @@ function updateContextMenu(tab) {
 		});
 
 		browser.contextMenus.update(`menu-new-rule-separator`, {
-			visible: anyMatch
+			visible: anyMatch && createRule
 		});
 	});
 }
 
-
 browser.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "xxxx-clipboard") {
-		console.log(tab);
-		console.log(info);
 		var sending = browser.tabs.sendMessage(tab.id, { "action": "getContextMenuContext" } );
 		sending.then(elements => {
 			console.log(elements);
@@ -291,11 +327,3 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
 	}
 });
 
-
-
-function uuidv4() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-}

@@ -8,7 +8,7 @@
  */
 var rules = [];
 
-function updateRules(response, value, ccc) {
+function updateRules(response) {
 	rules = response.rules;
 	var left = document.getElementById("left");
 	var activeIds = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
@@ -43,16 +43,20 @@ document.getElementById("left").addEventListener("keydown", event => {
 	if (event.code == "Delete") {
 		var left = document.getElementById("left");
 		var ruleIds = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
-		rules = rules.filter(x => !ruleIds.includes(x.id));
-		updateRules({rules: rules});
+		
+		if (ruleIds.length > 0) {
+			let nextId = findNextAfterDeletion(rules, ruleIds[ruleIds.length-1]);
+			rules = rules.filter(x => !ruleIds.includes(x.id));
+			updateRules({rules: rules});
+			clickOnRule(null, nextId);
+			left.focus();
+		}
 	}
 });
 
 document.getElementById("left").addEventListener("click", event => {
 	if (hasClass(event.target, "left-pane-item")) {
 		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
-		Array.from(left.childNodes).forEach(x => removeClass(x, "active"));
-		addClass(event.target, "active");
 		clickOnRule(lastActiveId, event.target.getAttribute("rule-id"));
 	}
 });
@@ -64,8 +68,7 @@ table.addEventListener("click", event => {
 		target = target.parentNode;
 	}
 	if (hasClass(target, "table-row")) {
-		Array.from(table.childNodes).forEach(x => removeClass(x, "active"));
-		addClass(target, "active");
+		clickOnItem(target.getAttribute("id"));
 	}
 });
 
@@ -98,17 +101,36 @@ registerEditor(document.getElementById("table-cache"), editor => {
 	return "";
 });
 
+function findNextAfterDeletion(items, id) {
+	let nextId = null;
+	let lastIndex = items.findIndex(x => x.id == id);
+	if (lastIndex >= 0 && lastIndex < items.length -1) {
+		nextId = items[lastIndex + 1].id;
+	} else if (lastIndex > 0) {
+		nextId = items[lastIndex - 1].id;
+	}
+	return nextId;
+}
 
 document.getElementById("table-cache").addEventListener("keydown", event => {
 	if (event.code == "Delete") {
 		var left = document.getElementById("left");
 		var cache = document.getElementById("table-cache");
 		var itemIds = Array.from(cache.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("id"));
-		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
-		let rule = rules.find(r => r.id == lastActiveId);
-		rule.items = rule.items.filter(x => !itemIds.includes(x.id));
-		updateRules({rules: rules});
-		clickOnRule(lastActiveId, lastActiveId);
+		
+		var lastRuleId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		let rule = rules.find(r => r.id == lastRuleId);
+		
+		if (itemIds.length > 0) {
+			let nextId = findNextAfterDeletion(rule.items, itemIds[itemIds.length-1]);
+			rule.items = rule.items.filter(x => !itemIds.includes(x.id));
+			
+			updateRules({rules: rules});
+			clickOnRule(lastRuleId, lastRuleId);
+			clickOnItem(nextId);
+			cache.focus();
+		}
+
 	}
 });
 
@@ -122,11 +144,25 @@ if (document.getElementById("field-sitematch")) {
 	};
 }
 
+function clickOnItem(itemId) {
+	var cache = document.getElementById("table-cache");
+	Array.from(cache.childNodes).forEach(x => removeClass(x, "active"));
+	Array.from(cache.childNodes).filter(x => x.getAttribute("id") == itemId).forEach(x => addClass(x, "active"));
+}
+
 function clickOnRule(previousRuleId, ruleId) {
-	saveCurrentRule(previousRuleId);
+	if (previousRuleId != null) {
+		saveCurrentRule(previousRuleId);
+	}
+	
+	Array.from(left.childNodes).forEach(x => removeClass(x, "active"));
+	Array.from(left.childNodes).filter(x => x.getAttribute("rule-id") == ruleId).forEach(x => addClass(x, "active"));
+
 	let rule = rules.filter(x => x.id == ruleId)[0];
-	if (rule.sitematch) {
+	if (rule != null && rule.sitematch != undefined) {
 		document.getElementById("field-sitematch").value = rule.sitematch;
+	} else {
+		document.getElementById("field-sitematch").value = "";
 	}
 
 	var table = document.getElementById("table-cache");
@@ -159,6 +195,7 @@ function setItemResult(itemResult) {
 }
 
 function saveCurrentRule(ruleId) {
+	console.log("saveCurrentRule");
 	if (ruleId) {
 		let rule = rules.find(r => r.id == ruleId);
 		if (rule) {
@@ -239,6 +276,7 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 						menu.appendChild(child);
 					});
 				}
+
 				resolve();
 			});
 		}
@@ -300,33 +338,46 @@ function clickPopupItem(event) {
 	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
-		rule.items.push({ id: uuidv4(), name: "Item", xpath: "" });
+		let itemName = "Item #"+(rule.items.length+1);
+		rule.items.push({ id: uuidv4(), name: itemName, xpath: "" });
 	}
 	updateRules( { rules: rules } );
 	clickOnRule(lastActiveId, lastActiveId);
  };
  
-function restoreOptions() {
+function restoreWindow() {
+	var urlParams = new URLSearchParams(window.location.search);
+	if (urlParams.has('initialRule')) {
+		lastActiveId = urlParams.get('initialRule');
+		restoreOptions(lastActiveId);
+	} else {
+		restoreOptions(0);
+	}
+}
+
+function restoreOptions(idIndex) {
+	let ruleIdIndex = idIndex;
 	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
-	let rule = rules.find(r => r.id == lastActiveId);
+	if (lastActiveId != null) {
+		ruleIdIndex = idIndex;
+	}
 	
 	browser.storage.local.get('rules').then((res) => {
 		if (res.rules && Array.isArray(res.rules)) {
 			updateRules( { rules: res.rules } );
+			let ruleId = ruleIdIndex;
+			if (Number.isInteger(ruleIdIndex) && ruleIdIndex < rules.length) {
+				ruleId = rules[ruleIdIndex].id;
+			}
+			let rule = rules.find(r => r.id == ruleId);
 			if (rule) {
-				clickOnRule(lastActiveId, lastActiveId);
+				clickOnRule(null, ruleId);
 			}
 		} else {
 			updateRules( { rules: [] } );
-			if (rule) {
-				clickOnRule(lastActiveId, lastActiveId);
-			}
 		}
 	}, (error) => {
 		updateRules( { rules: [] } );
-		if (rule) {
-			clickOnRule(lastActiveId, lastActiveId);
-		}
 	});
 }
 
@@ -334,7 +385,7 @@ function logStorageChange(changes) {
 	restoreOptions();
 }
 
-document.addEventListener('DOMContentLoaded', restoreOptions);
+document.addEventListener('DOMContentLoaded', restoreWindow);
 browser.storage.onChanged.addListener(logStorageChange);
 // var sending = browser.runtime.sendMessage( { "action": "callback" } );
 // sending.then( updateRules , function (error) {});

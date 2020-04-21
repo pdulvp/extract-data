@@ -131,17 +131,17 @@ function createPanel(content) {
 document.addEventListener('DOMContentLoaded', restoreOptions);
 
 document.getElementById("menu-editrules").onclick = function (event) {
+	var popupURL = browser.extension.getURL("ui/options.html");
 	let createData = {
 		type: "popup",
 		allowScriptsToClose: true,
 		width: 1200,
 		height: 500,
-		url: "options.html"
+		url: popupURL
 	};
 	let creating = browser.windows.create(createData);
 	creating.then(() => {
-		console.log("The popup has been created");
-	}); 
+	});
  };
  
  if ( document.getElementById("menu-configure") != null) {

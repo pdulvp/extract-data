@@ -46,7 +46,7 @@
   },
   
   "background": {
-    "scripts": [ "background.js", "ui-helper.js" ]
+    "scripts": [ "background.js", "ui/ui-helper.js" ]
   }, 
 
   "content_scripts": [

@@ -55,7 +55,7 @@ function uuidv4() {
       var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
-  }
+}
 
 function copyToClipboard(text, html) {
     function oncopy(event) {
