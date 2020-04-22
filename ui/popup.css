@@ -226,20 +226,11 @@ input[readonly]:hover {
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-#button-functions {
-  background:url("functions.png") no-repeat center center ;
-}
-#button-variables {
-  background:url("variables.png") no-repeat center center;
+#button-open {
+  background:url("open.png") no-repeat center center ;
 }
 #button-inspect {
   background:url("check.png") no-repeat center center;
-}
-#button-browse {
-  background:url("folder.png") no-repeat center center;
-}
-#button-search {
-  background:url("browse.png") no-repeat center center;
 }
 .panel {
   margin-top: 4px;

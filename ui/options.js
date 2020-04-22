@@ -288,13 +288,16 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 		console.log(tabs);
 		let tab = tabs.filter(x => x.id == tabId).find(x => true);
 		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
-		var sending = browser.tabs.sendMessage(tab.id, { "action": "highlight", rule: rules.find(r => r.id == lastActiveId) } );
-		sending.then(result => {
-			result.rulesResults.find(r => r.id == lastActiveId).itemsResults.forEach(itemResult => {
-				console.log(itemResult);
-				setItemResult(itemResult);
-			});
+
+		browser.tabs.update(tab.id, { active: true}).then(result => {
+			var sending = browser.tabs.sendMessage(tab.id, { "action": "highlight", rule: rules.find(r => r.id == lastActiveId) } );
+			sending.then(result => {
+				result.rulesResults.find(r => r.id == lastActiveId).itemsResults.forEach(itemResult => {
+					setItemResult(itemResult);
+				});
+			}, x => {});
 		}, x => {});
+		
 		//sendResponse({"response": "wait", "action" : request.action }); 
 
 	});
@@ -308,6 +311,14 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 function clickPopupItem(event) {
 	console.log(event);
 }
+
+document.getElementById("button-open").onclick = function (event) {
+	let url = document.getElementById("field-sitematch").value;
+	browser.tabs.create( {
+		url: url, 
+		active: true
+	 } );
+};
 
  document.getElementById("button-ok").onclick = function (event) {
 	browser.storage.local.set({
