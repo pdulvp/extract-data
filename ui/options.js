@@ -349,13 +349,17 @@ function restoreWindow() {
 	var urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('initialRule')) {
 		lastActiveId = urlParams.get('initialRule');
-		restoreOptions(lastActiveId);
+		let itemId = null;
+		if (urlParams.has('initialItem')) {
+			itemId = urlParams.get('initialItem');
+		}
+		restoreOptions(lastActiveId, itemId);
 	} else {
 		restoreOptions(0);
 	}
 }
 
-function restoreOptions(idIndex) {
+function restoreOptions(idIndex, itemId) {
 	let ruleIdIndex = idIndex;
 	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	if (lastActiveId != null) {
@@ -372,6 +376,7 @@ function restoreOptions(idIndex) {
 			let rule = rules.find(r => r.id == ruleId);
 			if (rule) {
 				clickOnRule(null, ruleId);
+				clickOnItem(itemId);
 			}
 		} else {
 			updateRules( { rules: [] } );

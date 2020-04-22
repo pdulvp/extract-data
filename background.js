@@ -82,6 +82,24 @@ function getStoredRules(callback) {
 	});
 }
 
+function onClickNotification(notification) {
+	let ruleId = notification;
+	let itemId = undefined;
+	if (notification.indexOf("@")>0) {
+		ruleId = notification.split("@")[0];
+		itemId = notification.split("@")[1];
+	}
+	browser.notifications.getAll().then(ns => {
+		if (ns[notification].title.indexOf("Rule") >= 0) {
+			editRule(ruleId);
+		} else if (ns[notification].title.indexOf("Item") >= 0) {
+			editRule(ruleId, itemId);
+		}
+	});
+}
+
+browser.notifications.onClicked.addListener(onClickNotification);
+
 function createNewRule(event, tabId) {
 	getStoredRules(storage => {
 		let ruleName = "Rule #"+(storage.rules.length+1);
@@ -95,7 +113,17 @@ function createNewRule(event, tabId) {
 		var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
 		sending.then(element => {
 			item.xpath = element.xpath;
-			storeRules( storage );
+			storeRules( storage ).then(e => {
+				browser.notifications.create(storedRule.id, {
+					"type": "basic",
+					"title": "Rule created",
+					"message": "Click here to edit rule"
+				}).then(e => {
+					  setTimeout(ee => {
+						var clearing = browser.notifications.clear(e );
+					  }, 5000);
+				});
+			});
 		}, x => {
 			storeRules( storage );
 		});
@@ -113,8 +141,19 @@ function createNewItem(event, rule, tabId) {
 			var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
 			sending.then(element => {
 				item.xpath = element.xpath;
-				storeRules( storage );
+				storeRules(storage).then(e => {
+					browser.notifications.create(storedRule.id+"@"+item.id, {
+						"type": "basic",
+						"title": "Item created",
+						"message": "Click here to edit item"
+					}).then(e => {
+						  setTimeout(ee => {
+							var clearing = browser.notifications.clear(e );
+						  }, 5000);
+					});
+				});
 			}, x => {
+				console.log("err");
 				storeRules( storage );
 			});
 		}
@@ -132,15 +171,19 @@ function highlightRule(event, rule, tabId) {
 	});
 }
 
-function editRule(event, rule, tabId) {
+function editRule(ruleId, itemId) {
 	var popupURL = browser.extension.getURL("ui/options.html");
-
+	let query = `?initialRule=${ruleId}`;
+	if (itemId != undefined) {
+		query += `&initialItem=${itemId}`;
+	}
+	
 	let createData = {
 		type: "popup",
 		allowScriptsToClose: true,
 		width: 1200,
 		height: 500,
-		url: popupURL+`?initialRule=${rule.id}`
+		url: popupURL+query
 	};
 	let creating = browser.windows.create(createData);
 	creating.then(() => {
@@ -156,7 +199,17 @@ function editItem(event, rule, item, tabId) {
 				var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
 				sending.then(element => {
 					item.xpath = element.xpath;
-					storeRules( storage );
+					storeRules( storage ).then(e => {
+						browser.notifications.create(storedRule.id+"@"+storedItem.id, {
+							"type": "basic",
+							"title": "Item modified",
+							"message": "Click here to edit item"
+						}).then(e => {
+							  setTimeout(ee => {
+								var clearing = browser.notifications.clear(e );
+							  }, 5000);
+						});
+					});
 				}, x => {
 					storeRules( storage );
 				});
@@ -165,12 +218,8 @@ function editItem(event, rule, item, tabId) {
 	});
 }
 
-
-
 function storeRules(storage) {
-	browser.storage.local.set(storage).then(() => {}, (error) => {
-		console.log(error);
-	});
+	return browser.storage.local.set(storage);
 }
 
 function updateRules(storage) {
@@ -272,7 +321,7 @@ function updateContextMenu(tab) {
 			});
 			browser.contextMenus.update(`menu-edit-${rule.id}`, {
 				onclick: e => {
-					editRule(e, rule, tab.id);
+					editRule(rule.id);
 				}
 			});
 			

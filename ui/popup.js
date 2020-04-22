@@ -121,8 +121,21 @@ function createPanel(content) {
 	child.innerHTML = content;
 	child.onclick = function(event) {
 		let ruleId = event.target.getAttribute("rule-id");
-		let content = getRuleContent(ruleId);
-		copyToClipboard(content);
+		if (ruleId != undefined) {
+			let content = getRuleContent(ruleId);
+			copyToClipboard(content);
+	
+			browser.notifications.create(uuidv4(), {
+				"type": "basic",
+				"title": "Copied !",
+				"message": "Copied to clipboard"
+			}).then(e => {
+				  setTimeout(ee => {
+					browser.notifications.clear(e);
+				  }, 2000);
+			});
+	
+		}
 		window.close();
 	}
 	return child;

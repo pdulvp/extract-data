@@ -21,8 +21,9 @@
   "permissions": [
 	  "<all_urls>",
 	  "storage",
-    "clipboardWrite",
     "activeTab",
+    "clipboardWrite",
+    "notifications",
     "contextMenus",
 	  "tabs"
   ],
