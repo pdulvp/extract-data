@@ -34,10 +34,12 @@ function registerDropdownMenu(button, menu, onopening, dispatch) {
 	});
 	
 	let displayPopup = function (event) {
-		let top = event.target.offsetTop + event.target.offsetHeight - 1;
-		let left = event.target.offsetLeft;
+		
 		let opening = onopening == null ? new Promise( x => true ) : onopening;
 		opening(menu).then(() =>  {
+			let top = event.target.offsetTop + event.target.offsetHeight - 1;
+			let size = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--popup-width'), 10);
+			let left = event.target.offsetLeft - size + event.target.offsetWidth;
 			let attr = `display:block; left:${left}px; top:${top}px;`;
 			menu.setAttribute("style", attr);
 			menu.addEventListener("click", menuEvent => {

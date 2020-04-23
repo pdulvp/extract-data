@@ -149,7 +149,7 @@ document.getElementById("menu-editrules").onclick = function (event) {
 		type: "popup",
 		allowScriptsToClose: true,
 		width: 1200,
-		height: 500,
+		height: 600,
 		url: popupURL
 	};
 	let creating = browser.windows.create(createData);

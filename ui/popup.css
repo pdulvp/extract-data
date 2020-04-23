@@ -10,10 +10,13 @@
 :root {
   --row-hover: rgba(100, 0, 255, 0.02);
   --row-active: rgba(100, 0, 255, 0.2);
+  --popup-width: 300px;
 }
 
 html, body {
   width: auto;
+  height: 100%;
+  min-width: 200px;
 }
 button {
   padding: 4px;
@@ -34,11 +37,7 @@ button:active {
 .popup {
   width: 200px;
 }
-.dialog {
-  background-color: rgb(242, 242, 248);
-  font: message-box;
-  user-select: none;
-}
+
 input {
   font: message-box;
 }
@@ -47,8 +46,8 @@ input {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   background-color: rgba(0, 0, 0, 0.03);
 }
-.table-header .table-column:not(:last-child) {
-  border-right: 1px solid rgba(0, 0, 0, 0.2);
+.table-header > .table-column:not(:last-child) {
+  /*border-right: 1px solid rgba(0, 0, 0, 0.2);*/
 }
 .table-row, .table-header {
   display: flex;          display: -webkit-flex;
@@ -101,6 +100,47 @@ input {
   padding-right:8px;
 }
 
+.table-column-wrapper {
+  flex-grow: 1; -webkit-flex-grow: 1;
+  flex-shrink: 0; -webkit-flex-shrink: 0;
+
+  display: flex;          display: -webkit-flex;
+  flex-direction: row;    -webkit-flex-direction: row;
+  flex-wrap: no-wrap;     -webkit-flex-wrap: no-wrap;
+}
+
+.table-column-wrapper-2 {
+  flex-grow: 1; -webkit-flex-grow: 1;
+  flex-shrink: 0; -webkit-flex-shrink: 0;
+
+  display: flex;          display: -webkit-flex;
+  flex-direction: row;    -webkit-flex-direction: row;
+  flex-wrap: no-wrap;     -webkit-flex-wrap: no-wrap;
+}
+
+@media(max-width: 350px) {
+  .table-column-wrapper {
+    flex-direction: column;    -webkit-flex-direction: column;
+  }
+  .table-column-name { border:0px;  }
+}
+
+@media(max-width: 520px) {
+  .table-column-wrapper-2 {
+    flex-direction: column;    -webkit-flex-direction: column;
+  }
+  .table-column-xpath { border:0px; }
+  .table-column-value { border:0px; }
+}
+
+@media(min-width: 520px) {
+  .table-column-xpath { width: 200px; border:0px; }
+  .table-column-value { width: 100px; text-align: center; }
+}
+@media(min-width: 350px) {
+  .table-column-name { width: 130px }
+}
+
 .valid { background-color: #e4ffcd }
 .warning { background-color: #fffbc6 }
 .error { background-color: #ffeaea; }
@@ -110,9 +150,6 @@ input {
 .icon-error { background-image: url("exclamation.png"); }
 
 .table-column-icon { width: 16px; background-repeat: no-repeat; background-position: center; }
-.table-column-name { width: 130px }
-.table-column-xpath { width: 200px; border:0px; }
-.table-column-value { width: 100px; text-align: center; }
 
 .table-column-xpath, .table-column-value {
   flex-grow: 1; -webkit-flex-grow: 1;
@@ -122,60 +159,132 @@ input {
   padding-right: 4px;
 }
 
-
-.dialog-zone {
-  display: flex;
+.dialog {
+  background-color: rgb(242, 242, 248);
+  font: message-box;
+  user-select: none;
+  margin: 0;
+  display: flex;          display: -webkit-flex;
+  flex-direction: column;    -webkit-flex-direction: column;
+  flex-wrap: nowrap;     -webkit-flex-wrap: nowrap;
 }
+
+@media(max-width: 750px) {
+  .dialog-zone {
+    flex-direction: column;    -webkit-flex-direction: column;
+  }
+}
+@media(min-width: 750px) {
+  .dialog-zone {
+    flex-direction: row;    -webkit-flex-direction: row;
+  }
+}
+.dialog-zone {
+  flex: 1;
+  height: 100%;
+  margin: 10px;
+  display: flex;          display: -webkit-flex;
+  flex-wrap: wrap;     -webkit-flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: stretch;
+}
+
 .resizeable-hpane {
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
-.dialog-zone {
-  margin-bottom: 50px;
-}
+
 .button-bar {
-  width: 100%;
-  border-top: 1px solid rgba(0, 0, 0, 0.2);
-  background-color: rgba(255, 255, 255, 0.3);
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  margin: 10px;
+  display: flex;          display: -webkit-flex;
+  flex-direction: row;    -webkit-flex-direction: row;
+  flex-wrap: wrap;     -webkit-flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: stretch;
 }
 .button-bar > button {
-  margin: 10px;
   width: 100px;
   height: 30px;
+  flex-grow: 0;
 }
-.button-right {
-  float: right;
+.button-bar > .button-separator {
+  flex-grow: 1;
+}
+@media(max-width: 550px) {
+  .button-bar > .button-separator {
+    display: none;
+  }
+  .button-bar > button {
+    margin-top: 10px;
+  }
+}
+@media(min-width: 550px) {
+  .button-bar > button:not(:last-child) {
+    margin-right: 10px;
+  }
 }
 
 .block {
-  display:block;
+  display: flex;          display: -webkit-flex;
+  flex-direction: row;    -webkit-flex-direction: row;
+  flex-wrap: wrap;     -webkit-flex-wrap: wrap;
   margin-bottom:10px;
+  align-items: center;
 }
-.right-pane {
-  padding: 10px;
+.block-bar {
+  display: flex;          display: -webkit-flex;
+  flex-direction: row;    -webkit-flex-direction: row;
+  flex-wrap: no-wrap;     -webkit-flex-wrap: no-wrap;
 }
+.block > * {
+  margin-left:10px;
+}
+.block-bar > * {
+  margin-right:10px;
+}
+@media(max-width: 350px) {
+  .block > * {
+    margin-bottom: 6px;
+  }
+}
+
 .right-pane .block input {
-  min-width: 300px;
+  /*min-width: 300px;*/
+  flex-grow: 1;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .right-pane {
-  margin-left: 10px;
-  width: calc(1200px - 200px - 40px);
+  padding: 10px;
+  /*width: calc(1200px - 200px - 40px);*/
   background-color: rgb(255, 255, 255);
-}
-.right-pane .block label {
-  width: 70px;
-  display: inline-block;
+  flex-grow: 6;
+
+  display: flex;          display: -webkit-flex;
+  flex-direction: column;    -webkit-flex-direction: column;
+  flex-wrap: wrap;     -webkit-flex-wrap: wrap;
 }
 
 .left-pane {
-  width: 200px;
+  margin-right: 6px;
+  flex-grow: 0;
   background-color: rgb(255, 255, 255);
 }
-
+@media(min-width: 750px) {
+  .left-pane {
+    width: 200px;
+  }
+}
+@media(max-width: 750px) {
+  .left-pane {
+    height: 140px;
+    margin-right: 0px;
+    margin-bottom: 6px;
+    overflow-y: scroll;
+  }
+  .right-pane {
+    flex-grow: 6;
+  }
+}
 .left-pane input {
   border: 0px;
   width: -moz-available;
@@ -217,12 +326,11 @@ input[readonly]:hover {
   z-index: 1;
   background-color: rgb(255, 255, 255);
   border: 1px solid rgba(0, 0, 0, 0.2);
-  width: 300px;
+  width: var(--popup-width);
 }
 
 .table-cache {
-  display: block;
-  min-height: 230px;
+  flex-grow:1;
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 

@@ -67,6 +67,15 @@ table.addEventListener("click", event => {
 	if (hasClass(target, "table-column")) {
 		target = target.parentNode;
 	}
+	if (hasClass(target, "table-column-wrapper-2")) {
+		target = target.parentNode;
+	}
+	if (hasClass(target, "table-column-wrapper")) {
+		target = target.parentNode;
+	}
+	if (hasClass(target, "table-column")) {
+		target = target.parentNode;
+	}
 	if (hasClass(target, "table-row")) {
 		clickOnItem(target.getAttribute("id"));
 	}
@@ -180,7 +189,7 @@ function setItemResult(itemResult) {
 	var table = document.getElementById("table-cache");
 	var row = Array.from(table.childNodes).find(e => e.id == itemResult.id);
 	let icon = Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column table-column-icon");
-	let value = Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column table-column-value");
+	let value = Array.from(Array.from(Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column-wrapper").childNodes).find(e => e.getAttribute("class") == "table-column-wrapper-2").childNodes).find(e => e.getAttribute("class") == "table-column table-column-value");
 	if (icon) {
 		if (itemResult.valid) {
 			addClass(row, "valid");
@@ -225,13 +234,21 @@ function createCacheEntry(item) {
 	child.textContent = item.icon;
 	node.appendChild(child);
 
+	let childWrapper = document.createElement("div");
+	addClass(childWrapper, "table-column-wrapper");
+	node.appendChild(childWrapper);
+
 	child = document.createElement("input");
 	addClass(child, "table-column table-column-name");
 	child.setAttribute("item-id", item.id);
 	child.setAttribute("item-data", "name");
 	child.value = item.name;
 	child.setAttribute("readonly", "readonly");
-	node.appendChild(child);
+	childWrapper.appendChild(child);
+
+	let childWrapper2 = document.createElement("div");
+	addClass(childWrapper2, "table-column-wrapper-2");
+	childWrapper.appendChild(childWrapper2);
 
 	child = document.createElement("input");
 	child.setAttribute("type", "text");
@@ -240,12 +257,12 @@ function createCacheEntry(item) {
 	child.setAttribute("item-data", "xpath");
 	child.value = item.xpath;
 	child.setAttribute("readonly", "readonly");
-	node.appendChild(child);
+	childWrapper2.appendChild(child);
 
 	child = document.createElement("div");
 	addClass(child, "table-column table-column-value");
 	child.textContent = "";
-	node.appendChild(child);
+	childWrapper2.appendChild(child);
 
 	return node;
 }

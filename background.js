@@ -182,7 +182,7 @@ function editRule(ruleId, itemId) {
 		type: "popup",
 		allowScriptsToClose: true,
 		width: 1200,
-		height: 500,
+		height: 600,
 		url: popupURL+query
 	};
 	let creating = browser.windows.create(createData);

@@ -21,26 +21,33 @@
       <div class="block">
         <label for="fname">Site:</label>
       <input type="text" id="field-sitematch" name="fname"/>
-      <button title="Open to a new tab" id="button-open">&nbsp;</button>
-      <button title="Execute current rule on the given tab" id="button-inspect" data-menu="popup-menu">&nbsp;</button>
+      <div class="block-bar">
+        <button title="Open to a new tab" id="button-open">&nbsp;</button>
+        <button title="Execute current rule on the given tab" id="button-inspect" data-menu="popup-menu">&nbsp;</button>
+      </div>
     </div>
 
     <div id="table-cache" class="table-cache" tabindex="1" ><div class="table-header">
         <div class="table-column table-column-icon"></div>
-        <div class="table-column table-column-name">Name</div>
-        <div class="table-column table-column-xpath">XPath</div>
-        <div class="table-column table-column-value">Value</div>
+        <div class="table-column-wrapper">
+          <div class="table-column table-column-name">Name</div>
+          <div class="table-column-wrapper-2">
+            <div class="table-column table-column-xpath">XPath</div>
+            <div class="table-column table-column-value">Value</div>
+          </div>
+        </div>
     </div>
     </div>
-
+    </div>
   </div>
   <div id="popup-menu" class="popup-menu">
   </div>
   <div class="button-bar">
     <button id="button-new-rule">New rule</button>
     <button id="button-new-item">New item</button>
-    <button id="button-cancel" class="button-right">Cancel</button>
-    <button id="button-ok" class="button-right">OK</button>
+    <div class="button-separator"></div>
+    <button id="button-cancel">Cancel</button>
+    <button id="button-ok">OK</button>
   </div>
   
   <script src="ui-helper.js"></script>
