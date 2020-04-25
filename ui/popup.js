@@ -24,6 +24,11 @@ function restoreOptions() {
 function updateRules(storage) {
 	this.Rules = storage.rules;
 
+	var table = document.getElementById("panel");
+	while (table.childNodes.length > 1) {
+		table.removeChild(table.firstChild);
+	}
+
 	let menu = document.getElementById("menu-editrules");
 	browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
@@ -164,15 +169,17 @@ document.getElementById("menu-editrules").onclick = function (event) {
  }
  
 function handleMessage(request, sender, sendResponse) {
-	if (request.action == "result") {
-		console.log("popup");
-		console.log(request);
-		console.log(sender);
-	  return;
+	if (request.action == "setResult") {
+		restoreOptions();
 	}
 }
 
+function onStorageChange() {
+	restoreOptions();
+}
+
 browser.runtime.onMessage.addListener(handleMessage);
+browser.storage.onChanged.addListener(onStorageChange);
 
 function findRule(ruleId) {
 	if (Rules != null)  {
