@@ -133,3 +133,36 @@ function registerEditor(element, cancel, save) {
 		editorStartEdit(event);
 	});
 }
+
+function openOptions(initialRuleId, initialItemId) {
+	let query = "";
+	if (initialRuleId != undefined) {
+		query += `?initialRule=${initialRuleId}`;
+	}
+	if (initialItemId != undefined) {
+		query += `&initialItem=${initialItemId}`;
+	}
+
+	var popupURL = browser.extension.getURL("ui/options.html");
+	let createData = {
+		type: "popup",
+		allowScriptsToClose: true,
+		width: 1200,
+		height: 600,
+		url: popupURL+query
+	};
+
+	browser.tabs.query({ url: popupURL }, (tabs) => {
+		if (tabs.length ==0) {
+			let creating = browser.windows.create(createData);
+				creating.then(() => { });
+		} else {
+			browser.windows.update(tabs[0].windowId, { focused: true }).then(result => { 
+				browser.tabs.update(tabs[0].id, { active: true }).then(result => { 
+					const sending = browser.runtime.sendMessage({ "action": "setSelection", "initialRule": initialRuleId, "initialItem": initialItemId});
+					sending.then(x => {}, x => {}); 
+				});
+			});
+		}
+	});
+}

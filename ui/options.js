@@ -420,5 +420,11 @@ function logStorageChange(changes) {
 
 document.addEventListener('DOMContentLoaded', restoreWindow);
 browser.storage.onChanged.addListener(logStorageChange);
-// var sending = browser.runtime.sendMessage( { "action": "callback" } );
-// sending.then( updateRules , function (error) {});
+
+function handleMessage(request, sender, sendResponse) {
+	if (request.action == "setSelection") {
+		restoreOptions(request.initialRule, request.initialItem);
+	}
+}
+
+browser.runtime.onMessage.addListener(handleMessage);

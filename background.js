@@ -224,22 +224,7 @@ function highlightRule(event, rule, tabId) {
 }
 
 function editRule(ruleId, itemId) {
-	var popupURL = browser.extension.getURL("ui/options.html");
-	let query = `?initialRule=${ruleId}`;
-	if (itemId != undefined) {
-		query += `&initialItem=${itemId}`;
-	}
-	
-	let createData = {
-		type: "popup",
-		allowScriptsToClose: true,
-		width: 1200,
-		height: 600,
-		url: popupURL+query
-	};
-	let creating = browser.windows.create(createData);
-	creating.then(() => {
-	});
+	openOptions(ruleId, itemId);
 }
 
 function editItem(event, rule, item, tabId) {
@@ -418,13 +403,3 @@ function updateContextMenu(tab) {
 		});
 	});
 }
-
-browser.contextMenus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId === "xxxx-clipboard") {
-		var sending = browser.tabs.sendMessage(tab.id, { "action": "getContextMenuContext" } );
-		sending.then(elements => {
-			console.log(elements);
-		}, x => {});
-	}
-});
-
