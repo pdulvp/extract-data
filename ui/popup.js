@@ -169,7 +169,7 @@ document.getElementById("menu-editrules").onclick = function (event) {
  }
  
 function handleMessage(request, sender, sendResponse) {
-	if (request.action == "setResult") {
+	if (request.action == "onResultChange") {
 		restoreOptions();
 	}
 }

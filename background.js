@@ -8,12 +8,64 @@
  */
 var results = [];
 
+function equals(result1, result2) {
+	if (result1 == undefined) {
+		return (result2 == undefined);
+	}
+	if (result2 == undefined) {
+		return (result1 == undefined);
+	}
+	if (result1.rulesResults.length != result2.rulesResults.length) {
+		return false;
+	}
+
+	// Returns whether the item i1 doens't have an equal item into rule2
+	let invalidItem = function (i1, rule2) {
+		let i2 = rule2.itemsResults.find(i2 => i2.id == i1.id);
+		if (i2 == undefined) {
+			return true;
+
+		} else if (i1.valid != i2.valid) {
+			return true;
+
+		} else if (i1.value != i2.value) {
+			return true;
+
+		}
+		return false;
+	}
+
+	// Returns whether the rule r1 doens't have an equal rule into result2
+	let invalidRule = function (r1, result2) {
+		let r2 = result2.rulesResults.find(r2 => r2.id == r1.id);
+		if (r2 == undefined) {
+			return true;
+
+		} else if (r1.itemsResults.length != r2.itemsResults.length) {
+			return true;
+
+		} else if (r1.itemsResults.find(i1 => invalidItem(i1, r2)) != undefined) {
+			return true;
+
+		}
+		return false;
+	};
+	if (result1.rulesResults.find(r1 => invalidRule(r1, result2)) != undefined) {
+		return false;
+	}
+	return true;
+}
+
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setResult") {
-		results[sender.tab.id] = request.result;
-		updateBadge(sender.tab.id);
-		updateContextMenu(sender.tab);
-		
+		if (!equals(results[sender.tab.id], request.result)) {
+			results[sender.tab.id] = request.result;
+			updateBadge(sender.tab.id);
+			updateContextMenu(sender.tab);
+			var sending = browser.runtime.sendMessage( { "action": "onResultChange", "tabId": sender.tab.id, "result": request.result } )
+			sending.then((e) => {} , (e) => { });
+		}
+
 	} else if (request.action == "getResult") {
 		sendResponse({result: results[request.tabId]});
 

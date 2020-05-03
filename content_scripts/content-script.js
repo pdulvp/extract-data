@@ -8,13 +8,40 @@
  */
  let clickedElement;
 
+ let clickListener = function(event) {
+    if (event.button == 2) { //right click
+		clickedElement = event.target;
+		const sending = browser.runtime.sendMessage({ "action": "setClickedElement" });
+		sending.then(x => {}, x => {}); 
+    }
+};
+
+let currentObserver = null;
+
+var mutationObserver = new MutationObserver(function(mutations) {
+	// Avoid computation if there is changes between 200ms
+	if (currentObserver != null) {
+		clearTimeout(currentObserver);
+	}
+	currentObserver = setTimeout(restoreOptions, 200);
+});
+
 function restoreOptions() {
+	currentObserver = null;
 	let resend = function(result) {
 		const sending = browser.runtime.sendMessage({ "action": "setResult", "result": result});
 		sending.then(x => {}, x => {}); 
 	}
 	browser.storage.local.get('rules').then((res) => {
 		if (res.rules && Array.isArray(res.rules)) {
+			
+			mutationObserver.observe(document.documentElement, {
+				childList: true,
+				subtree: true,
+				attributes: false,
+				characterData: true
+			});
+
 			resend(getRulesResult( { rules: res.rules} ));
 		} else {
 			resend(getRulesResult( { rules: []} ));
@@ -77,17 +104,19 @@ function highlight(element) {
 			element.removeAttribute("style");
 			element.removeAttribute("previous");
 		}
-
 	}, 1000);
 }
 
 browser.runtime.onMessage.addListener(handleMessage);
 
 function getElementByXpath(path) {
+	if (path == null || path.length == 0) {
+		console.log("no path to evaluate");
+		return null;
+	}
 	return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
 
-//https://developer.mozilla.org/en-US/docs/Web/XPath/Snippets#getXPathForElement
 function getXPathForElement(el, xml) {
 	let value = function(e) {
 		let path = e.nodeName.toLowerCase();
@@ -99,7 +128,6 @@ function getXPathForElement(el, xml) {
 	};
 
 	var xpath = '';
-	
 	while(el !== xml.documentElement) {
 		xpath = value(el)+`/${xpath}`;
 		el = el.parentNode;
@@ -110,14 +138,8 @@ function getXPathForElement(el, xml) {
 	return xpath;
 }
 
-setTimeout(restoreOptions, 2000);
-
-document.addEventListener("mousedown", function(event) {
-    if(event.button == 2) { //right click
-		clickedElement = event.target;
-		const sending = browser.runtime.sendMessage({ "action": "setClickedElement" });
-		sending.then(x => {}, x => {}); 
-    }
-}, true);
 
 browser.storage.onChanged.addListener(restoreOptions);
+document.addEventListener("mousedown", clickListener, true);
+
+restoreOptions();
