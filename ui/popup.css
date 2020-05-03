@@ -11,9 +11,33 @@
   --row-hover: rgba(100, 0, 255, 0.02);
   --row-active: rgba(100, 0, 255, 0.2);
   --popup-width: 300px;
+  --popup-background: rgb(255, 255, 255);
+  --dialog-background: rgb(242, 242, 248);
+  --dialog-color: rgb(0, 0, 0);
+  --inner-box-color: rgb(255, 255, 255);
+  --button-bgcolor: rgb(230, 230, 230);
+  --color-highlight: rgb(0, 0, 0);
+  --popup-background-item: rgba(100, 0, 255, 0.02);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --row-hover: rgba(100, 0, 255, 0.2);
+    --row-active: rgba(100, 0, 255, 0.5);
+    --popup-background: rgb(50, 50, 60);
+    --dialog-background: rgb(50, 50, 60);
+    --inner-box-color: rgb(100, 100, 100);
+    --inner-item: rgb(100, 100, 100);
+    --dialog-color: rgb(230, 230, 230);
+    --button-bgcolor: rgb(50, 50, 60);
+    --color-highlight: rgb(0, 0, 0);
+    --popup-background-item: rgba(100, 0, 255, 0.2);
+  }
 }
 
 html, body {
+  background-color: var(--popup-background);
+  color: var(--dialog-color);
   width: auto;
   height: 100%;
   min-width: 200px;
@@ -40,14 +64,13 @@ button:active {
 
 input {
   font: message-box;
+  background-color: var(--inner-item);
+  color: var(--dialog-color);
 }
 
 .table-header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   background-color: rgba(0, 0, 0, 0.03);
-}
-.table-header > .table-column:not(:last-child) {
-  /*border-right: 1px solid rgba(0, 0, 0, 0.2);*/
 }
 .table-row, .table-header {
   display: flex;          display: -webkit-flex;
@@ -58,7 +81,7 @@ input {
 }
 
 .table-row, .table-row input {
-  background-color: rgb(255, 255, 255);
+  background-color: var(--inner-item);
   cursor: default;
 }
 .table-row.active, .table-row.active input {
@@ -141,9 +164,9 @@ input {
   .table-column-name { width: 130px }
 }
 
-.valid { background-color: #e4ffcd }
-.warning { background-color: #fffbc6 }
-.error { background-color: #ffeaea; }
+.valid { background-color: rgba(228, 255, 205, 0.8); color: var(--color-highlight) }
+.warning { background-color: rgba(252, 255, 198, 0.8); color: var(--color-highlight) }
+.error { background-color: rgba(255, 234, 234, 0.8); color: var(--color-highlight) }
 
 .icon-valid { background-image: url("ok.svg"); background-size: 16px 16px; }
 .icon-warning { background-image: url("warn.svg"); background-size: 16px 16px; }
@@ -160,7 +183,7 @@ input {
 }
 
 .dialog {
-  background-color: rgb(242, 242, 248);
+  background-color: var(--dialog-background);
   font: message-box;
   user-select: none;
   margin: 0;
@@ -205,6 +228,8 @@ input {
   width: 100px;
   height: 30px;
   flex-grow: 0;
+  background-color: var(--button-bgcolor);
+  color: var(--dialog-color);
 }
 .button-bar > .button-separator {
   flex-grow: 1;
@@ -256,7 +281,7 @@ input {
 .right-pane {
   padding: 10px;
   /*width: calc(1200px - 200px - 40px);*/
-  background-color: rgb(255, 255, 255);
+  background-color: var(--inner-box-color);
   flex-grow: 6;
 
   display: flex;          display: -webkit-flex;
@@ -267,7 +292,7 @@ input {
 .left-pane {
   margin-right: 6px;
   flex-grow: 0;
-  background-color: rgb(255, 255, 255);
+  background-color: var(--inner-box-color);
 }
 @media(min-width: 750px) {
   .left-pane {
@@ -295,7 +320,7 @@ input {
   cursor: default;
   display: block;
   padding: 6px;
-  background-color: rgb(255, 255, 255);
+  background-color: var(--inner-item);
 }
 
 input[readonly] {
@@ -324,7 +349,7 @@ input[readonly]:hover {
   position: absolute;
   display: none;
   z-index: 1;
-  background-color: rgb(255, 255, 255);
+  background-color: var(--popup-background);
   border: 1px solid rgba(0, 0, 0, 0.2);
   width: var(--popup-width);
 }
@@ -358,13 +383,11 @@ input[readonly]:hover {
   padding: 5px;
   padding-left: 36px;
 }
-
 .menuitem-iconic:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
-
 .panel-tooltip {
-  background-color: rgba(100, 0, 255, 0.02);
+  background-color: var(--popup-background-item);
   border-top: 1px solid rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   margin-bottom: 4px;
