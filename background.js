@@ -378,18 +378,14 @@ function updateContextMenu(tab) {
 							let itemValue = values.itemsResults.find(i => i.id == item.id );
 							if (itemValue != null) {
 								let itemValid = itemValue.value != null;
-								if (itemValid) {
+								if (!itemValid) {
 									browser.contextMenus.update(`menu-${item.id}`, {
-										icons: {  "16": "ui/accept.png" }
-									});
-								} else {
-									browser.contextMenus.update(`menu-${item.id}`, {
-										icons: {  "16": "ui/warning.png" }
+										icons: {  "16": "ui/warn.svg",  "32": "ui/warn.svg" }
 									});
 								}
 							} else {
 								browser.contextMenus.update(`menu-${item.id}`, {
-									icons: {  "16": "ui/warning.png" }
+									icons: {  "16": "ui/warn.svg",  "32": "ui/warn.svg" }
 								});
 							}
 						});

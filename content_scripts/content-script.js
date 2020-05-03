@@ -68,6 +68,7 @@ function handleMessage(request, sender, sendResponse) {
 function getRulesResult(storage) {
 	let results = storage.rules.filter(r => document.URL == r.sitematch).map(r => {
 		let items = r.items.map(i => {
+			
 			let element = getElementByXpath(i.xpath);
 			let value = null;
 			if (element != null) {
@@ -110,11 +111,15 @@ function highlight(element) {
 browser.runtime.onMessage.addListener(handleMessage);
 
 function getElementByXpath(path) {
-	if (path == null || path.length == 0) {
-		console.log("no path to evaluate");
+	try {
+		if (path == null || path.length == 0) {
+			console.log("no path to evaluate");
+			return null;
+		}
+		return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	} catch(e) {
 		return null;
 	}
-	return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
 
 function getXPathForElement(el, xml) {
