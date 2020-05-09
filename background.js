@@ -272,15 +272,23 @@ function storeRules(storage) {
 	return browser.storage.local.set(storage);
 }
 
+let menus = {};
+function getOrCreateMenu(data) {
+	if (menus[data.id] == undefined) {
+		browser.contextMenus.create(data);
+		menus[data.id] = data;
+	}
+}
+
 function updateRules(storage) {
 	
-	browser.contextMenus.create({
+	getOrCreateMenu({
 		id: `menu-new-rule`,
 		title: browser.i18n.getMessage("menu_new_rule"),
 		contexts: ["editable", "frame", "link", "image", "page", "selection"]
 	});
 	if (storage.rules.length > 0) {
-		browser.contextMenus.create({
+		getOrCreateMenu({
 			id: `menu-new-rule-separator`,
 			type: "separator",
 			contexts: ["editable", "frame", "link", "image", "page", "selection"]
@@ -288,45 +296,61 @@ function updateRules(storage) {
 	}
 	storage.rules.forEach(rule => {
 
-		browser.contextMenus.create({
-			id: `menu-${rule.id}`,
+		getOrCreateMenu({
+			id: `menu-rule-${rule.id}`,
 			title: `${rule.name}`,
 			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
-		browser.contextMenus.create({
+		getOrCreateMenu({
 			id: `menu-new-item-${rule.id}`,
-			parentId: `menu-${rule.id}`,
+			parentId: `menu-rule-${rule.id}`,
 			title: browser.i18n.getMessage("menu_new_item"),
 			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
-		browser.contextMenus.create({
+		getOrCreateMenu({
 			id: `menu-edit-${rule.id}`,
-			parentId: `menu-${rule.id}`,
+			parentId: `menu-rule-${rule.id}`,
 			title: browser.i18n.getMessage("menu_edit_rule"),
 			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
-		browser.contextMenus.create({
+		getOrCreateMenu({
 			id: `menu-highlight-${rule.id}`,
-			parentId: `menu-${rule.id}`,
+			parentId: `menu-rule-${rule.id}`,
 			title: browser.i18n.getMessage("menu_highlight_rule"),
 			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
 		if (rule.items.length > 0) {
-			browser.contextMenus.create({
+			getOrCreateMenu({
 				id: `menu-new-item-separator-${rule.id}`,
-				parentId: `menu-${rule.id}`,
+				parentId: `menu-rule-${rule.id}`,
 				type: "separator",
 				contexts: ["editable", "frame", "link", "image", "page", "selection"]
 			});
 		}
 		rule.items.forEach(item => {
-			browser.contextMenus.create({
-				id: `menu-${item.id}`,
-				parentId: `menu-${rule.id}`,
+			getOrCreateMenu({
+				id: `menu-item-${item.id}`,
+				parentId: `menu-rule-${rule.id}`,
 				title: browser.i18n.getMessage("menu_edit_item", item.name),
 				contexts: ["editable", "frame", "link", "image", "page", "selection"]
 			});
 		});
+
+		// Remove menus of deleted items
+		Object.keys(menus).map(k => menus[k]).filter(m => m.parentId == `menu-rule-${rule.id}` && m.id.startsWith("menu-item-")).filter(m => {
+			return rule.items.find(i => m.id.endsWith(i.id)) == undefined;
+		}).forEach(m => {
+			delete menus[m.id];
+			browser.contextMenus.remove(m.id);
+		});
+	});
+
+	// Remove menus of deleted rules
+	Object.keys(menus).map(k => menus[k]).filter(m => m.id.startsWith("menu-rule-")).filter(m => {
+		return storage.rules.find(i => m.id.endsWith(i.id)) == undefined;
+	}).forEach(m => {
+		delete menus[m.id];
+		browser.contextMenus.remove(m.id);
 	});
 }
 
@@ -367,7 +391,7 @@ function updateContextMenu(tab) {
 			if (match) {
 				anyMatch = true;
 			}
-			browser.contextMenus.update(`menu-${rule.id}`, {
+			browser.contextMenus.update(`menu-rule-${rule.id}`, {
 				title: rule.name,
 				visible: match
 			});
@@ -388,7 +412,7 @@ function updateContextMenu(tab) {
 			});
 			
 			rule.items.forEach(item => {
-				browser.contextMenus.update(`menu-${item.id}`, {
+				browser.contextMenus.update(`menu-item-${item.id}`, {
 					title: browser.i18n.getMessage("menu_edit_item", item.name),
 					onclick: e => {
 						editItem(e, rule, item, tab.id);
@@ -405,12 +429,12 @@ function updateContextMenu(tab) {
 							if (itemValue != null) {
 								let itemValid = itemValue.value != null;
 								if (!itemValid) {
-									browser.contextMenus.update(`menu-${item.id}`, {
+									browser.contextMenus.update(`menu-item-${item.id}`, {
 										icons: {  "16": "ui/warn.svg" }
 									});
 								}
 							} else {
-								browser.contextMenus.update(`menu-${item.id}`, {
+								browser.contextMenus.update(`menu-item-${item.id}`, {
 									icons: {  "16": "ui/warn.svg" }
 								});
 							}
