@@ -58,7 +58,7 @@ function updateRules(storage) {
 
 				if (matchingRules.length == 0) {
 					let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
-					let panel = createPanel('<div class="tooltip-title">'+noRuleMsg+'</div>');
+					let panel = createPanel(createTitle(noRuleMsg));
 					addClass(panel, "panel-tooltip-error");
 					document.getElementById("panel").insertBefore(panel, menu);
 					return;
@@ -68,22 +68,20 @@ function updateRules(storage) {
 					let rule = findRule(r.id);
 					let items = r.itemsResults.filter(x => x.value != null);
 					if (items.length > 0) {
-						let content = `<div rule-id="${rule.id}" class="tooltip-title">${rule.name}</div>`;
-						content += items.map(x => {
-							return `<div rule-id="${rule.id}" class="tooltip-value">${x.value}</div>`;
-						}).join("");
-						return createPanel(`<div rule-id="${rule.id}" class="tooltip-content">${content}</div>`, r.id);
+						let contents = [ createTitle(rule.name, rule.id) ];
+						items.forEach(x => {
+							contents.push(createValue(x.value, rule.id));
+						})
+						return createPanel(createContent(contents, rule.id), rule.id);
 					} else {
-						let content = `<div rule-id="${rule.id}" class="tooltip-title">${rule.name}</div>`;
-						content += browser.i18n.getMessage("no_result");
-						return createPanel(`<div class="tooltip-content">${content}</div>`, r.id);
+						let contents = [ createTitle(rule.name, rule.id), createValue(browser.i18n.getMessage("no_result"), rule.id) ];
+						return createPanel(createContent(contents, rule.id), rule.id);
 					}
-					return null;
 				}).filter(x => x != null);
 
 				if (rulesRenders.length == 0) {
 					let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
-					let panel = createPanel('<div class="tooltip-title">'+noRuleMsg+'</div>');
+					let panel = createPanel(createTitle(noRuleMsg));
 					addClass(panel, "panel-tooltip-error");
 					document.getElementById("panel").insertBefore(panel, menu);
 				} else {
@@ -95,13 +93,13 @@ function updateRules(storage) {
 			}
 
 			let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
-			let panel = createPanel('<div class="tooltip-title">'+noRuleMsg+'</div>');
+			let panel = createPanel(createTitle(noRuleMsg));
 			addClass(panel, "panel-tooltip-error");
 			document.getElementById("panel").insertBefore(panel, menu);
 			
 		}, e => {
 			let errorMsg = browser.i18n.getMessage("error_occured");
-			let panel = createPanel('<div class="tooltip-title">'+errorMsg+'</div>');
+			let panel = createPanel(createTitle(errorMsg));
 			addClass(panel, "panel-tooltip-error");
 			document.getElementById("panel").insertBefore(panel, menu);
 			console.log(e);
@@ -152,10 +150,39 @@ function getRuleContent(ruleId, type) {
 	}
 }
 
-function createTitle(title) {
+function createTitle(title, ruleId) {
 	let child = document.createElement("div");
+	if (ruleId != undefined) {
+		child.setAttribute("rule-id", ruleId);
+	}
 	addClass(child, "tooltip-title");
 	child.textContent = title;
+	return child;
+}
+
+function createValue(value, ruleId) {
+	let child = document.createElement("div");
+	if (ruleId != undefined) {
+		child.setAttribute("rule-id", ruleId);
+	}
+	addClass(child, "tooltip-value");
+	child.textContent = value;
+	return child;
+}
+
+function createContent(content, ruleId) {
+	let child = document.createElement("div");
+	if (ruleId != undefined) {
+		child.setAttribute("rule-id", ruleId);
+	}
+	addClass(child, "tooltip-content");
+	if (Array.isArray(content)) {
+		content.forEach(c => {
+			child.appendChild(c);
+		});
+	} else {
+		child.appendChild(content);
+	}
 	return child;
 }
 
@@ -166,7 +193,13 @@ function createPanel(content, id) {
 
 	let child2 = document.createElement("div");
 	addClass(child2, "panel-tooltip-content");
-	child2.innerHTML = content;
+	if (Array.isArray(content)) {
+		content.forEach(c => {
+			child2.appendChild(c);
+		});
+	} else {
+		child2.appendChild(content);
+	}
 	child.appendChild(child2);
 
 	let child3 = document.createElement("div");
