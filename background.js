@@ -32,6 +32,12 @@ function equals(result1, result2) {
 		} else if (i1.value != i2.value) {
 			return true;
 
+		} else if (i1.item.name != i2.item.name) {
+			return true;
+
+		} else if (i1.item.xpath != i2.item.xpath) {
+			return true;
+
 		}
 		return false;
 	}
@@ -40,6 +46,9 @@ function equals(result1, result2) {
 	let invalidRule = function (r1, result2) {
 		let r2 = result2.rulesResults.find(r2 => r2.id == r1.id);
 		if (r2 == undefined) {
+			return true;
+
+		} else if (r1.rule.name != r2.rule.name) {
 			return true;
 
 		} else if (r1.itemsResults.length != r2.itemsResults.length) {
@@ -264,6 +273,7 @@ function storeRules(storage) {
 }
 
 function updateRules(storage) {
+	
 	browser.contextMenus.create({
 		id: `menu-new-rule`,
 		title: browser.i18n.getMessage("menu_new_rule"),
@@ -277,6 +287,7 @@ function updateRules(storage) {
 		});
 	}
 	storage.rules.forEach(rule => {
+
 		browser.contextMenus.create({
 			id: `menu-${rule.id}`,
 			title: `${rule.name}`,
@@ -357,6 +368,7 @@ function updateContextMenu(tab) {
 				anyMatch = true;
 			}
 			browser.contextMenus.update(`menu-${rule.id}`, {
+				title: rule.name,
 				visible: match
 			});
 			browser.contextMenus.update(`menu-new-item-${rule.id}`, {
@@ -377,6 +389,7 @@ function updateContextMenu(tab) {
 			
 			rule.items.forEach(item => {
 				browser.contextMenus.update(`menu-${item.id}`, {
+					title: browser.i18n.getMessage("menu_edit_item", item.name),
 					onclick: e => {
 						editItem(e, rule, item, tab.id);
 					}

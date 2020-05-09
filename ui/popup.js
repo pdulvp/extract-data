@@ -219,13 +219,10 @@ function createPanel(content, id) {
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
 
-
-
 document.getElementById("menu-editrules").onclick = function (event) {
 	openOptions();
 };
 document.getElementById("menu-editrules").textContent = browser.i18n.getMessage("popup_edit_rules");
-
 
 if ( document.getElementById("menu-configure") != null) {
 	document.getElementById("menu-configure").onclick = function (event) {
