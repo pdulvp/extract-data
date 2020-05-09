@@ -138,6 +138,9 @@ function registerEditor(element, cancel, save) {
 }
 
 function doesMatch(url, sitematch) {
+	if (sitematch == undefined || sitematch.length == 0) {
+		return false;
+	}
 	return new RegExp(sitematch).test(url);
 }
 
