@@ -70,10 +70,12 @@ function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setResult") {
 		if (!equals(results[sender.tab.id], request.result)) {
 			results[sender.tab.id] = request.result;
-			updateBadge(sender.tab.id);
+			updateBadge(sender.tab.id, true);
 			updateContextMenu(sender.tab);
 			var sending = browser.runtime.sendMessage( { "action": "onResultChange", "tabId": sender.tab.id, "result": request.result } )
 			sending.then((e) => {} , (e) => { });
+		} else {
+			updateBadge(sender.tab.id, false);
 		}
 
 	} else if (request.action == "getResult") {
@@ -84,25 +86,26 @@ function handleMessage(request, sender, sendResponse) {
 	}
 }
 
-function updateBadge(tabId) {
+function updateBadge(tabId, animate) {
 	if (results[tabId] != null) {
 		let len = results[tabId].rulesResults.length;
 		if (len != 0) {
 			browser.browserAction.setBadgeTextColor({ color: "#FFFFFF" });
 			browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
 
-				browser.browserAction.getBadgeText({tabId: tabId}).then(e => {
-					if (e != null && e.length > 0) {
-						browser.browserAction.setBadgeBackgroundColor({ color: "#FF00FF" });
-						browser.browserAction.setBadgeText({ text: ""+len, tabId: tabId });
-						setTimeout(e => {
-							browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
-						}, 200);
-					} else {
+			browser.browserAction.getBadgeText({tabId: tabId}).then(e => {
+				let newText = ""+len;
+				if (animate && e != null && e.length > 0) {
+					browser.browserAction.setBadgeBackgroundColor({ color: "#FF00FF" });
+					browser.browserAction.setBadgeText({ text: newText, tabId: tabId });
+					setTimeout(e => {
 						browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
-						browser.browserAction.setBadgeText({ text: ""+len, tabId: tabId });
-					}
-				});
+					}, 200);
+				} else if (e != newText) {
+					browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
+					browser.browserAction.setBadgeText({ text: newText, tabId: tabId });
+				}
+			});
 			 
 		} else {
 			browser.browserAction.setBadgeText({ text: "", tabId: tabId });
@@ -281,7 +284,6 @@ function getOrCreateMenu(data) {
 }
 
 function updateRules(storage) {
-	
 	getOrCreateMenu({
 		id: `menu-new-rule`,
 		title: browser.i18n.getMessage("menu_new_rule"),
