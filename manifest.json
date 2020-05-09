@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
   "author": "pdulvp@laposte.net",
-  "version": "1.0",
+  "version": "1.1",
   "homepage_url": "https://github.com/pdulvp/extract-data",
   "description": "__MSG_extensionDescription__",
 
@@ -19,7 +19,6 @@
   },
 
   "permissions": [
-	  "<all_urls>",
 	  "storage",
     "activeTab",
     "clipboardWrite",
