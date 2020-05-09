@@ -49,7 +49,7 @@ function updateRules(storage) {
 					if (rule == null) {
 						return false;
 					}
-					if (tabUrl != rule.sitematch) {
+					if (!doesMatch(tabUrl, rule.sitematch)) {
 						return false;
 					}
 					return true;

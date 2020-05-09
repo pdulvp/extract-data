@@ -352,7 +352,7 @@ function updateContextMenu(tab) {
 		let anyMatch = false;
 
 		storage.rules.forEach(rule => {
-			let match = tab.url == rule.sitematch;
+			let match = doesMatch(tab.url, rule.sitematch);
 			if (match) {
 				anyMatch = true;
 			}

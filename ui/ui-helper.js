@@ -137,6 +137,10 @@ function registerEditor(element, cancel, save) {
 	});
 }
 
+function doesMatch(url, sitematch) {
+	return new RegExp(sitematch).test(url);
+}
+
 function openOptions(initialRuleId, initialItemId) {
 	let query = "";
 	if (initialRuleId != undefined) {

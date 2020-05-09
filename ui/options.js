@@ -279,7 +279,7 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 		let rule = rules.find(r => r.id == lastActiveId);
 		if (rule) {
 			browser.tabs.query({}, (tabs) => {
-				tabs = tabs.filter(t => t.url == rule.sitematch);
+				tabs = tabs.filter(t => doesMatch(t.url, rule.sitematch));
 				if (tabs.length == 0) {
 					let child = document.createElement("div");
 					addClass(child, "menuitem-iconic");

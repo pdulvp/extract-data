@@ -69,7 +69,7 @@ function handleMessage(request, sender, sendResponse) {
 }
 
 function getRulesResult(storage) {
-	let results = storage.rules.filter(r => document.URL == r.sitematch).map(r => {
+	let results = storage.rules.filter(r => doesMatch(document.URL, r.sitematch)).map(r => {
 		let items = r.items.map(i => {
 			
 			let element = getElementByXpath(i.xpath);
