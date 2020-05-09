@@ -99,9 +99,9 @@ On a page, invalid items are displaying a warning aside.
 
 Especially when a rule is covered by a `Regular Expression`, selected items may not work on some matched pages.
 
-![Add item](images/list-all-matching-tabs.png)
-
 The `Green button` will list all opened tabs that are matched by the Site field.
+
+![Add item](images/list-all-matching-tabs.png)
 
 By clicking on one of them, it will highlight elements on the page and indicates which items are not matched.
 
