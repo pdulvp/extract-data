@@ -6,7 +6,10 @@
  
  @author: pdulvp@laposte.net
  */
- let clickedElement;
+
+
+var browser = adaptBrowser();
+let clickedElement;
 
  let clickListener = function(event) {
     if (event.button == 2) { //right click

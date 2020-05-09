@@ -7,6 +7,7 @@
  @author: pdulvp@laposte.net
  */
 var results = [];
+var browser = adaptBrowser();
 
 function equals(result1, result2) {
 	if (result1 == undefined) {
@@ -135,30 +136,28 @@ function getStoredRules(callback) {
 }
 
 function onClickNotification(notification) {
-	let ruleId = notification;
-	let itemId = undefined;
 	if (notification.indexOf("@")>0) {
-		ruleId = notification.split("@")[0];
-		itemId = notification.split("@")[1];
-	}
-	browser.notifications.getAll().then(ns => {
-		if (ns[notification].title.indexOf("Rule") >= 0) {
+		type = notification.split("@")[0];
+		ruleId = notification.split("@")[1];
+		itemId = notification.split("@")[2];
+
+		if (type.indexOf("rule") >= 0) {
 			editRule(ruleId);
-		} else if (ns[notification].title.indexOf("Item") >= 0) {
+		} else if (type.indexOf("item") >= 0) {
 			editRule(ruleId, itemId);
 		}
-	});
+	}
 }
 
 browser.notifications.onClicked.addListener(onClickNotification);
 
 function createNewRule(event, tabId) {
 	getStoredRules(storage => {
-		let ruleName = "Rule #"+(storage.rules.length+1);
+		let ruleName = browser.i18n.getMessage("new_rule_name", ""+(storage.rules.length+1));
 		let storedRule = { id: uuidv4(), name: ruleName, sitematch: event.pageUrl, items: [] };
 		storage.rules.push(storedRule);
 
-		let itemName = "Item #"+(storedRule.items.length+1);
+		let itemName = browser.i18n.getMessage("new_item_name", ""+(storedRule.items.length+1));
 		let item = { id: uuidv4(), name: itemName, xpath: "" };
 		storedRule.items.push(item);
 		
@@ -166,14 +165,17 @@ function createNewRule(event, tabId) {
 		sending.then(element => {
 			item.xpath = element.xpath;
 			storeRules( storage ).then(e => {
-				browser.notifications.create(storedRule.id, {
+				browser.notifications.create("rule@"+storedRule.id, {
 					"type": "basic",
-					"title": "Rule created",
-					"message": "Click here to edit rule"
+                    "iconUrl" : browser.extension.getURL("icons/icon.svg"),
+					"title": browser.i18n.getMessage("notification_newrule_title"),
+					"message": browser.i18n.getMessage("notification_newrule_description")
 				}).then(e => {
 					  setTimeout(ee => {
 						var clearing = browser.notifications.clear(e );
 					  }, 5000);
+				}, e => {
+					console.log(e);
 				});
 			});
 		}, x => {
@@ -194,10 +196,11 @@ function createNewItem(event, rule, tabId) {
 			sending.then(element => {
 				item.xpath = element.xpath;
 				storeRules(storage).then(e => {
-					browser.notifications.create(storedRule.id+"@"+item.id, {
+					browser.notifications.create("item@"+storedRule.id+"@"+item.id, {
 						"type": "basic",
-						"title": "Item created",
-						"message": "Click here to edit item"
+						"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+						"title": browser.i18n.getMessage("notification_newitem_title"),
+						"message": browser.i18n.getMessage("notification_newitem_description")
 					}).then(e => {
 						  setTimeout(ee => {
 							var clearing = browser.notifications.clear(e );
@@ -237,10 +240,11 @@ function editItem(event, rule, item, tabId) {
 				sending.then(element => {
 					item.xpath = element.xpath;
 					storeRules( storage ).then(e => {
-						browser.notifications.create(storedRule.id+"@"+storedItem.id, {
+						browser.notifications.create("item@"+storedRule.id+"@"+storedItem.id, {
 							"type": "basic",
-							"title": "Item modified",
-							"message": "Click here to edit item"
+							"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+							"title": browser.i18n.getMessage("notification_edititem_title"),
+							"message": browser.i18n.getMessage("notification_edititem_description")
 						}).then(e => {
 							  setTimeout(ee => {
 								var clearing = browser.notifications.clear(e );
@@ -262,7 +266,7 @@ function storeRules(storage) {
 function updateRules(storage) {
 	browser.contextMenus.create({
 		id: `menu-new-rule`,
-		title: `Create a new rule`,
+		title: browser.i18n.getMessage("menu_new_rule"),
 		contexts: ["editable", "frame", "link", "image", "page", "selection"]
 	});
 	if (storage.rules.length > 0) {
@@ -281,19 +285,19 @@ function updateRules(storage) {
 		browser.contextMenus.create({
 			id: `menu-new-item-${rule.id}`,
 			parentId: `menu-${rule.id}`,
-			title: `Add a new item`,
+			title: browser.i18n.getMessage("menu_new_item"),
 			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
 		browser.contextMenus.create({
 			id: `menu-edit-${rule.id}`,
 			parentId: `menu-${rule.id}`,
-			title: `Edit rule`,
+			title: browser.i18n.getMessage("menu_edit_rule"),
 			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
 		browser.contextMenus.create({
 			id: `menu-highlight-${rule.id}`,
 			parentId: `menu-${rule.id}`,
-			title: `Highlight`,
+			title: browser.i18n.getMessage("menu_highlight_rule"),
 			contexts: ["editable", "frame", "link", "image", "page", "selection"]
 		});
 		if (rule.items.length > 0) {
@@ -308,7 +312,7 @@ function updateRules(storage) {
 			browser.contextMenus.create({
 				id: `menu-${item.id}`,
 				parentId: `menu-${rule.id}`,
-				title: `Change '${item.name}'`,
+				title: browser.i18n.getMessage("menu_edit_item", item.name),
 				contexts: ["editable", "frame", "link", "image", "page", "selection"]
 			});
 		});
@@ -316,8 +320,17 @@ function updateRules(storage) {
 }
 
 function allowExtension(urlString) {
+	if (urlString.length == 0) {
+		return false;
+	}
 	let url = new URL(urlString);
 	if (url.protocol == "mozextension:") {
+		return false;
+	}
+	if (url.protocol == "chrome:") {
+		return false;
+	}
+	if (url.protocol == "chrome-extension:") {
 		return false;
 	}
 	if (url.protocol == "about:") {
@@ -380,12 +393,12 @@ function updateContextMenu(tab) {
 								let itemValid = itemValue.value != null;
 								if (!itemValid) {
 									browser.contextMenus.update(`menu-${item.id}`, {
-										icons: {  "16": "ui/warn.svg",  "32": "ui/warn.svg" }
+										icons: {  "16": "ui/warn.svg" }
 									});
 								}
 							} else {
 								browser.contextMenus.update(`menu-${item.id}`, {
-									icons: {  "16": "ui/warn.svg",  "32": "ui/warn.svg" }
+									icons: {  "16": "ui/warn.svg" }
 								});
 							}
 						});

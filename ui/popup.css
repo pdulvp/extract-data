@@ -18,6 +18,7 @@
   --button-bgcolor: rgb(230, 230, 230);
   --color-highlight: rgb(0, 0, 0);
   --popup-background-item: rgba(100, 0, 255, 0.02);
+  --default-font: 12px "Segoe UI", message-box;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,12 +36,16 @@
   }
 }
 
+html.html-dialog {
+  height: 100%;
+}
 html, body {
   background-color: var(--popup-background);
   color: var(--dialog-color);
   width: auto;
-  height: 100%;
   min-width: 200px;
+  padding: 0px;
+  margin: 0px;
 }
 button {
   padding: 4px;
@@ -63,7 +68,7 @@ button:active {
 }
 
 input {
-  font: message-box;
+  font: var(--default-font);
   background-color: var(--inner-item);
   color: var(--dialog-color);
 }
@@ -184,8 +189,9 @@ input {
 
 .dialog {
   background-color: var(--dialog-background);
-  font: message-box;
+  font: var(--default-font);
   user-select: none;
+  height: 100%;
   margin: 0;
   display: flex;          display: -webkit-flex;
   flex-direction: column;    -webkit-flex-direction: column;
@@ -402,6 +408,8 @@ input[readonly]:hover {
   flex-grow: 1;
 }
 
+
+
 .panel-tooltip-toolbar {
   flex-grow: 0;
   width: 24px;
@@ -433,5 +441,8 @@ input[readonly]:hover {
 
 .tooltip-title {
   font-weight: bold;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
+}
+.tooltip-value {
+  padding-bottom: 6px;
 }

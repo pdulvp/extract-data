@@ -6,6 +6,8 @@
  
  @author: pdulvp@laposte.net
  */
+
+var browser = adaptBrowser();
 var rules = [];
 
 function updateRules(response) {
@@ -282,7 +284,8 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 					let child = document.createElement("div");
 					addClass(child, "menuitem-iconic");
 					child.setAttribute("enabled", "false");
-					child.textContent = "There is opened tab matching this rule";
+					
+					child.textContent = browser.i18n.getMessage("options_opened_tab");
 					menu.appendChild(child);
 				} else {
 					tabs.forEach(t => {
@@ -357,7 +360,7 @@ document.getElementById("button-open").onclick = function (event) {
 
  document.getElementById("button-new-rule").onclick = function (event) {
 	console.log(rules);
-	let ruleName = "Rule #"+(rules.length+1);
+	let ruleName = browser.i18n.getMessage("new_rule_name", ""+(rules.length+1));
 	rules.push({ id: uuidv4(), name: ruleName, sitematch: "", items: [] });
 	updateRules( { rules: rules } );
  };
@@ -366,7 +369,7 @@ document.getElementById("button-open").onclick = function (event) {
 	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
-		let itemName = "Item #"+(rule.items.length+1);
+		let itemName = browser.i18n.getMessage("new_item_name", ""+(rule.items.length+1));
 		rule.items.push({ id: uuidv4(), name: itemName, xpath: "" });
 	}
 	updateRules( { rules: rules } );
@@ -417,6 +420,18 @@ function restoreOptions(idIndex, itemId) {
 function logStorageChange(changes) {
 	restoreOptions();
 }
+
+document.getElementById("label-site").textContent = browser.i18n.getMessage("label_site");
+document.getElementById("button-open").title = browser.i18n.getMessage("button_open"); 
+document.getElementById("button-inspect").title = browser.i18n.getMessage("button_inspect"); 
+document.getElementById("button-new-rule").textContent = browser.i18n.getMessage("button_new_rule");
+document.getElementById("button-new-item").textContent = browser.i18n.getMessage("button_new_item");
+document.getElementById("button-cancel").textContent = browser.i18n.getMessage("button_cancel");
+document.getElementById("button-ok").textContent = browser.i18n.getMessage("button_ok");
+document.getElementById("table-column-value").textContent = browser.i18n.getMessage("table_column_value");
+document.getElementById("table-column-name").textContent = browser.i18n.getMessage("table_column_name");
+document.getElementById("table-column-xpath").textContent = browser.i18n.getMessage("table_column_xpath");
+
 
 document.addEventListener('DOMContentLoaded', restoreWindow);
 browser.storage.onChanged.addListener(logStorageChange);

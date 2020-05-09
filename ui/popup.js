@@ -9,6 +9,8 @@
 var Rules = null;
 var Results = null;
 
+var browser = adaptBrowser();
+
 function restoreOptions() {
 	browser.storage.local.get('rules').then((res) => {
 		if (res.rules && Array.isArray(res.rules)) {
@@ -54,7 +56,8 @@ function updateRules(storage) {
 				});
 
 				if (matchingRules.length == 0) {
-					let panel = createPanel('<div class="tooltip-title">No rule from this page</div>');
+					let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
+					let panel = createPanel('<div class="tooltip-title">'+noRuleMsg+'</div>');
 					addClass(panel, "panel-tooltip-error");
 					document.getElementById("panel").insertBefore(panel, menu);
 					return;
@@ -66,19 +69,20 @@ function updateRules(storage) {
 					if (items.length > 0) {
 						let content = `<div rule-id="${rule.id}" class="tooltip-title">${rule.name}</div>`;
 						content += items.map(x => {
-							return `${x.value}`;
-						}).join("<br/>");
+							return `<div rule-id="${rule.id}" class="tooltip-value">${x.value}</div>`;
+						}).join("");
 						return createPanel(`<div rule-id="${rule.id}" class="tooltip-content">${content}</div>`, r.id);
 					} else {
 						let content = `<div rule-id="${rule.id}" class="tooltip-title">${rule.name}</div>`;
-						content += 'No result';
+						content += browser.i18n.getMessage("no_result");
 						return createPanel(`<div class="tooltip-content">${content}</div>`, r.id);
 					}
 					return null;
 				}).filter(x => x != null);
 
 				if (rulesRenders.length == 0) {
-					let panel = createPanel('<div class="tooltip-title">No result from this page</div>');
+					let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
+					let panel = createPanel('<div class="tooltip-title">'+noRuleMsg+'</div>');
 					addClass(panel, "panel-tooltip-error");
 					document.getElementById("panel").insertBefore(panel, menu);
 				} else {
@@ -89,12 +93,14 @@ function updateRules(storage) {
 				return;
 			}
 
-			let panel = createPanel('<div class="tooltip-title">No rule from this page</div>');
+			let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
+			let panel = createPanel('<div class="tooltip-title">'+noRuleMsg+'</div>');
 			addClass(panel, "panel-tooltip-error");
 			document.getElementById("panel").insertBefore(panel, menu);
 			
 		}, e => {
-			let panel = createPanel('<div class="tooltip-title">An error occured</div>');
+			let errorMsg = browser.i18n.getMessage("error_occured");
+			let panel = createPanel('<div class="tooltip-title">'+errorMsg+'</div>');
 			addClass(panel, "panel-tooltip-error");
 			document.getElementById("panel").insertBefore(panel, menu);
 			console.log(e);
@@ -195,34 +201,37 @@ function createPanel(content, id) {
 		if (ruleId != undefined) {
 			let content = getRuleContent(ruleId, type);
 			copyToClipboard(content);
-	
 			browser.notifications.create(uuidv4(), {
 				"type": "basic",
-				"title": "Copied !",
-				"message": "Copied to clipboard"
+				"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+				"title": browser.i18n.getMessage("notification_copied_title"),
+				"message": browser.i18n.getMessage("notification_copied_description"),
 			}).then(e => {
+				window.close();
 				  setTimeout(ee => {
 					browser.notifications.clear(e);
 				  }, 2000);
 			});
-	
 		}
-		window.close();
 	}
 	return child;
 }
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
 
+
+
 document.getElementById("menu-editrules").onclick = function (event) {
 	openOptions();
- };
- 
- if ( document.getElementById("menu-configure") != null) {
+};
+document.getElementById("menu-editrules").textContent = browser.i18n.getMessage("popup_edit_rules");
+
+
+if ( document.getElementById("menu-configure") != null) {
 	document.getElementById("menu-configure").onclick = function (event) {
 		browser.runtime.openOptionsPage();
 	};
- }
+}
  
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "onResultChange") {

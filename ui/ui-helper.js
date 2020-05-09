@@ -6,6 +6,9 @@
  
  @author: pdulvp@laposte.net
  */
+
+var browser = adaptBrowser();
+
 function hasClass(item, value) {
 	return item.getAttribute("class") != null && (item.getAttribute("class").includes(value));
 }

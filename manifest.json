@@ -1,21 +1,21 @@
 {
   "manifest_version": 2,
-  "name": "Extract Data",
+  "name": "__MSG_extensionName__",
   "author": "pdulvp@laposte.net",
   "version": "1.0",
   "homepage_url": "https://github.com/pdulvp/extract-data",
-  "description": "This extension allows to scrap tabs and ease extraction of page content data",
-
-  "applications": {
-	  "gecko": {
-		"id": "1affb545-f499-4643-92dc-a9ef3123c170@pdulvp",
-		"strict_min_version": "75.0"
-	  }
-	},
+  "description": "__MSG_extensionDescription__",
 
   "icons": {
-    "48": "icons/icon.svg",
-    "32": "icons/icon.svg"
+    "16": "icons/icon-16.png",
+    "20": "icons/icon-20.png",
+    "25": "icons/icon-25.png",
+    "30": "icons/icon-30.png",
+    "32": "icons/icon-32.png",
+    "40": "icons/icon-40.png",
+    "48": "icons/icon-48.png",
+    "64": "icons/icon-64.png",
+    "128": "icons/icon-128.png"
   },
 
   "permissions": [
@@ -28,32 +28,45 @@
 	  "tabs"
   ],
   
-  
+  "default_locale": "en", 
+
   "browser_action": {
     "browser_style": true,
-    "default_icon": "icons/icon.svg",
-    "default_title": "Extract Data",
-    "default_popup": "ui/popup.html", 
+    "default_icon": {        
+      "16": "icons/icon-16.png",
+      "20": "icons/icon-20.png",
+      "25": "icons/icon-25.png",
+      "30": "icons/icon-30.png",
+      "32": "icons/icon-32.png",
+      "40": "icons/icon-40.png",
+      "48": "icons/icon-48.png",
+      "64": "icons/icon-64.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "__MSG_extensionName__",
+    "default_popup": "ui/popup.html",
     
-    "theme_icons": [{ 
-        "light": "icons/icon-dark.svg",
-        "dark": "icons/icon.svg",
-        "size": 32
-      }, {
-        "light": "icons/icon-dark.svg",
-        "dark": "icons/icon.svg",
-        "size": 16
-      }]
+    "theme_icons": [
+      { "light": "icons/icon-dark-16.png", "dark": "icons/icon-16.png", "size": 16 }, 
+      { "light": "icons/icon-dark-20.png", "dark": "icons/icon-20.png", "size": 20 }, 
+      { "light": "icons/icon-dark-25.png", "dark": "icons/icon-25.png", "size": 25 }, 
+      { "light": "icons/icon-dark-30.png", "dark": "icons/icon-30.png", "size": 30 }, 
+      { "light": "icons/icon-dark-32.png", "dark": "icons/icon-32.png", "size": 32 }, 
+      { "light": "icons/icon-dark-40.png", "dark": "icons/icon-40.png", "size": 40 }, 
+      { "light": "icons/icon-dark-48.png", "dark": "icons/icon-48.png", "size": 48 }, 
+      { "light": "icons/icon-dark-64.png", "dark": "icons/icon-64.png", "size": 64 }, 
+      { "light": "icons/icon-dark-128.png", "dark": "icons/icon-128.png", "size": 128 }
+    ]
   },
   
   "background": {
-    "scripts": [ "background.js", "ui/ui-helper.js" ]
+    "scripts": [ "ui/compat.js", "ui/ui-helper.js", "background.js" ]
   }, 
 
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["content_scripts/content-script.js"]
+      "js": ["ui/compat.js", "content_scripts/content-script.js"]
     }
   ]
 
