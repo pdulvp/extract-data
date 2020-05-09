@@ -18,9 +18,9 @@ On a interesting element on a page, just `Right-Click > Create a new rule`
 
 **That's all.** If you look at the toolbar, the element is available by clicking on the addon icon.
 
-:thumbsup: If you visit again the site, it will be directly available here again.
-
 ![Add item](images/rule-1.png)
+
+:thumbsup: If you visit again the site, it will be directly available here again.
 
 You can add additional element: 
 
