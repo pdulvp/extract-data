@@ -164,10 +164,15 @@ function onClickNotification(notification) {
 
 browser.notifications.onClicked.addListener(onClickNotification);
 
+function encodeRegex(url) {
+	return url.replace(/([\.\?\[\]\(\)\\\^\$\{\}\+])/g, "\\$1");
+}
+
 function createNewRule(event, tabId) {
 	getStoredRules(storage => {
 		let ruleName = browser.i18n.getMessage("new_rule_name", ""+(storage.rules.length+1));
-		let storedRule = { id: uuidv4(), name: ruleName, sitematch: event.pageUrl, items: [] };
+
+		let storedRule = { id: uuidv4(), name: ruleName, sitematch: encodeRegex(event.pageUrl), items: [] };
 		storage.rules.push(storedRule);
 
 		let itemName = browser.i18n.getMessage("new_item_name", ""+(storedRule.items.length+1));
