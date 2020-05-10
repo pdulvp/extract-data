@@ -335,6 +335,7 @@ function clickPopupItem(event) {
 
 document.getElementById("button-open").onclick = function (event) {
 	let url = document.getElementById("field-sitematch").value;
+	url = url.replace(/\\([\.\?\[\]\(\)\\\^\$\{\}\+])/g, "$1");
 	browser.tabs.create( {
 		url: url, 
 		active: true
