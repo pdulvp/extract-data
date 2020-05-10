@@ -20,6 +20,8 @@ On a interesting element on a page, just `Right-Click > Create a new rule`
 
 ![Add item](images/rule-1.png)
 
+Just click on one of the format appearing and it will be copied to the clipboard.
+
 :thumbsup: If you visit again the site, it will be directly available here again.
 
 You can add additional element: 
@@ -29,8 +31,6 @@ You can add additional element:
 It will be added to the toolbar: 
 
 ![Add item](images/add-rule-item.png)
-
-Just click on one of the format appearing and it will be copied to the clipboard. 
 
 :thumbsup: If the value within the site change, the value will be dynamically changed here too
 
