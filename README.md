@@ -3,12 +3,13 @@
 [![Google](https://img.shields.io/badge/Edge-pending--review-BBB?style=flat-square&logoColor=BBB&logo=Microsoft%20Edge)](https://www.microsoft.com/fr-fr/store/collections/edgeextensions)
 &emsp;&emsp;[![Patreon](https://img.shields.io/badge/sponsor-patreon-F96854?style=flat-square&logo=patreon)](https://patreon.com/pdulvp)
 
+
+![Add item](images/plaquette2.png)
+
 This extension allows to extract data on opened tabs and copy it to clipboard. (as JSON, XLS or with textual format)
 
 By right clicking on an element and defining an extraction rule, each time you will visit the site again, the data will be automatically extracted and available for a copy to the clipboard.
 
-![Add item](images/rule-2.png)
- 
 ## How to use it
 
 On a interesting element on a page, just `Right-Click > Create a new rule`
