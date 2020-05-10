@@ -30,6 +30,8 @@ It will be added to the toolbar:
 
 ![Add item](images/add-rule-item.png)
 
+Just click on one of the format appearing and it will be copied to the clipboard. 
+
 :thumbsup: If the value within the site change, the value will be dynamically changed here too
 
 ## Fine settings
