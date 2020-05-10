@@ -55,7 +55,7 @@ You can do better stuff:
 - Edit XPath (even if contextual menu `Change Item #XX` allows easier change)
 - Validate if your rules are working properly (see dedicated section)
 
-![Add item](images/popup-renamed.png)
+![Add item](images/popup-renamed.png) ![Add item](images/rule-2.png)
 
 ## Clipboard
 
