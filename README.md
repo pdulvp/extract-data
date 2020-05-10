@@ -1,6 +1,6 @@
 [![Firefox](https://img.shields.io/badge/Firefox-install-FF7139?style=flat-square&logo=Mozilla%20Firefox)](https://addons.mozilla.org/fr/firefox/addon/extract-data)
-[![Google](https://img.shields.io/badge/Chrome-TBA-BBB?style=flat-square&logoColor=BBB&logo=Google%20Chrome)](https://chrome.google.com/webstore)
-[![Google](https://img.shields.io/badge/Edge-TBA-BBB?style=flat-square&logoColor=BBB&logo=Microsoft%20Edge)](https://www.microsoft.com/fr-fr/store/collections/edgeextensions)
+[![Google](https://img.shields.io/badge/Chrome-pending--review-BBB?style=flat-square&logoColor=BBB&logo=Google%20Chrome)](https://chrome.google.com/webstore)
+[![Google](https://img.shields.io/badge/Edge-pending--review-BBB?style=flat-square&logoColor=BBB&logo=Microsoft%20Edge)](https://www.microsoft.com/fr-fr/store/collections/edgeextensions)
 &emsp;&emsp;[![Patreon](https://img.shields.io/badge/sponsor-patreon-F96854?style=flat-square&logo=patreon)](https://patreon.com/pdulvp)
 
 This extension allows to extract data on opened tabs and copy it to clipboard. (as JSON, XLS or with textual format)
