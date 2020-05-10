@@ -4,12 +4,8 @@ This extension allows to extract data on opened tabs and copy it to clipboard. (
 
 By right clicking on an element and defining an extraction rule, each time you will visit the site again, the data will be automatically extracted and available for a copy to the clipboard.
 
-## Compatibility
-
-* Mozilla Firefox
-* Google Chrome
-* Microsoft Edge
-
+![Add item](images/rule-2.png)
+ 
 ## How to use it
 
 On a interesting element on a page, just `Right-Click > Create a new rule`
@@ -55,7 +51,7 @@ You can do better stuff:
 - Edit XPath (even if contextual menu `Change Item #XX` allows easier change)
 - Validate if your rules are working properly (see dedicated section)
 
-![Add item](images/popup-renamed.png) ![Add item](images/rule-2.png)
+![Add item](images/popup-renamed.png)
 
 ## Clipboard
 
@@ -106,3 +102,9 @@ The `Green button` will list all opened tabs that are matched by the Site field.
 By clicking on one of them, it will highlight elements on the page and indicates which items are not matched.
 
 ![Add item](images/issue-on-tab.png)
+
+## Compatibility
+
+* Mozilla Firefox
+* Google Chrome
+* Microsoft Edge
