@@ -105,9 +105,3 @@ The `Green button` will list all opened tabs that are matched by the Site field.
 By clicking on one of them, it will highlight elements on the page and indicates which items are not matched.
 
 ![Add item](images/issue-on-tab.png)
-
-## Compatibility
-
-* Mozilla Firefox
-* Google Chrome
-* Microsoft Edge
