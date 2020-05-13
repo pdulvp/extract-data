@@ -1,6 +1,7 @@
 [![Firefox](https://img.shields.io/badge/Firefox-install--addon-FF7139?style=flat-square&logo=Mozilla%20Firefox)](https://addons.mozilla.org/fr/firefox/addon/extract-data)
 [![Google](https://img.shields.io/badge/Chrome-install--addon-4285F4?style=flat-square&logoColor=64a0ff&logo=Google%20Chrome)](https://chrome.google.com/webstore/detail/extract-data/dgojclpdbgnpjclhimcldkapkgnmjbcb)
-[![Google](https://img.shields.io/badge/Edge-pending--review-BBB?style=flat-square&logoColor=BBB&logo=Microsoft%20Edge)](https://www.microsoft.com/fr-fr/store/collections/edgeextensions)
+[![Edge](https://img.shields.io/badge/Edge-pending--review-BBB?style=flat-square&logoColor=BBB&logo=Microsoft%20Edge)](https://www.microsoft.com/fr-fr/store/collections/edgeextensions)
+[![Opera](https://img.shields.io/badge/Opera-pending--review-BBB?style=flat-square&logoColor=BBB&logo=Opera)](https://addons.opera.com/en)
 &emsp;&emsp;[![Patreon](https://img.shields.io/badge/sponsor-patreon-F96854?style=flat-square&logo=patreon)](https://patreon.com/pdulvp)
 
 
