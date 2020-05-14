@@ -2,7 +2,7 @@
 [![Google](https://img.shields.io/badge/Chrome-install--addon-4285F4?style=flat-square&logoColor=64a0ff&logo=Google%20Chrome)](https://chrome.google.com/webstore/detail/extract-data/dgojclpdbgnpjclhimcldkapkgnmjbcb)
 [![Edge](https://img.shields.io/badge/Edge-install--addon-0078D7?style=flat-square&logoColor=348cee&logo=Microsoft%20Edge)](https://microsoftedge.microsoft.com/addons/detail/kepgpcbkfghmiilchbdgkmagoiimbgep)
 [![Opera](https://img.shields.io/badge/Opera-pending--review-BBB?style=flat-square&logoColor=BBB&logo=Opera)](https://addons.opera.com/en)
-&emsp;&emsp;[![Patreon](https://img.shields.io/badge/sponsor-patreon-F96854?style=flat-square&logo=patreon)](https://patreon.com/pdulvp)
+&emsp;&emsp;[![Patreon](https://img.shields.io/badge/sponsor-patreon-F96854?style=flat-square&logo=patreon)](https://patreon.com/pdulvp) [![Patreon](https://img.shields.io/badge/news-pdulvp-ffbd00?logoColor=ffbd00&style=flat-square&logo=patreon)](https://patreon.com/pdulvp)
 
 
 ![Add item](images/plaquette2.png)
