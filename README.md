@@ -1,7 +1,7 @@
 [![Firefox](https://img.shields.io/badge/Firefox-install--addon-FF7139?style=flat-square&logo=Mozilla%20Firefox)](https://addons.mozilla.org/fr/firefox/addon/extract-data)
 [![Google](https://img.shields.io/badge/Chrome-install--addon-4285F4?style=flat-square&logoColor=64a0ff&logo=Google%20Chrome)](https://chrome.google.com/webstore/detail/extract-data/dgojclpdbgnpjclhimcldkapkgnmjbcb)
 [![Edge](https://img.shields.io/badge/Edge-install--addon-0078D7?style=flat-square&logoColor=348cee&logo=Microsoft%20Edge)](https://microsoftedge.microsoft.com/addons/detail/kepgpcbkfghmiilchbdgkmagoiimbgep)
-[![Opera](https://img.shields.io/badge/Opera-pending--review-BBB?style=flat-square&logoColor=BBB&logo=Opera)](https://addons.opera.com/en)
+[![Opera](https://img.shields.io/badge/Opera-install--addon-FF1B2D?style=flat-square&logoColor=FF1B2D&logo=Opera)](https://addons.opera.com/fr/extensions/details/extract-data/)
 &emsp;&emsp;[![Patreon](https://img.shields.io/badge/sponsor-patreon-F96854?style=flat-square&logo=patreon)](https://patreon.com/pdulvp) [![Patreon](https://img.shields.io/badge/news-pdulvp-ffbd00?logoColor=ffbd00&style=flat-square&logo=patreon)](https://patreon.com/pdulvp)
 
 
