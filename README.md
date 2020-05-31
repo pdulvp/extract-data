@@ -110,7 +110,7 @@ By clicking on one of them, it will highlight elements on the page and indicates
 
 ![Add item](images/issue-on-tab.png)
 
-### Advanced items editor
+## Advanced items editor
 
 Items can be edited within an advanced editor:
 
