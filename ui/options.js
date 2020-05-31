@@ -146,6 +146,9 @@ document.getElementById("table-cache").addEventListener("keydown", event => {
 	}
 });
 
+
+
+
 if (document.getElementById("field-sitematch")) {
 	document.getElementById("field-sitematch").oninput = function (event) {
 		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
@@ -178,13 +181,21 @@ function clickOnRule(previousRuleId, ruleId) {
 	}
 
 	var table = document.getElementById("table-cache");
-	while (table.childNodes.length > 1) {
-		table.removeChild(table.lastChild);
-	}
-	if (rule.items) {
-		rule.items.forEach(i => {
-			table.appendChild(createCacheEntry(i));
-		});
+	if (!hasClass(table, "invisible")) {
+		while (table.childNodes.length > 1) {
+			table.removeChild(table.lastChild);
+		}
+		if (rule.items) {
+			rule.items.forEach(i => {
+				table.appendChild(createCacheEntry(i));
+			});
+		}
+	} else {
+		var table = document.getElementById("table-editor");
+		while (table.childNodes.length > 2) {
+			table.removeChild(table.lastChild);
+		}
+		table.appendChild(createCacheEditor(rule.items));
 	}
 }
 
@@ -214,6 +225,30 @@ function saveCurrentRule(ruleId) {
 			if (document.getElementById("field-sitematch")) {
 				rule.sitematch = document.getElementById("field-sitematch").value;
 			}
+			var table = document.getElementById("table-editor");
+			if (!hasClass(table, "invisible")) {
+				let items = [];
+				try {
+					let obj = JSON.parse(table.lastChild.firstChild.value);
+					if (Array.isArray(obj)) {
+						obj.forEach(i => {
+							let item = { id : uuidv4(), name: i.name, xpath: i.xpath};
+							if (!(typeof item.name === 'string' || item.name instanceof String)) {
+								let itemName = browser.i18n.getMessage("new_item_name", ""+(items.length+1));
+								item.name = itemName;
+							}
+							if (!(typeof item.xpath === 'string' || item.xpath instanceof String)) {
+								item.xpath = "";
+							}
+							items.push(item);
+						});
+					}
+					rule.items = items;
+				} catch (e) {
+					console.log(e);
+				}
+			}
+			
 		}
 	}
 }
@@ -270,6 +305,26 @@ function createCacheEntry(item) {
 	return node;
 }
 
+function createCacheEditor(items) {
+	let node = document.createElement("div");
+	addClass(node, "table-row table-editor-row");
+
+	let child = null;
+	child = document.createElement("textarea");
+	addClass(child, "table-column table-column-editor");
+
+	let content = [];
+	items.forEach(i => {
+		let item = {};
+		item.name = i.name;
+		item.xpath = i.xpath;
+		content.push(item);
+	});
+	child.value = JSON.stringify(content, null, 2);
+	node.appendChild(child);
+
+	return node;
+}
 
 registerDropdownMenu(document.getElementById("button-inspect"), document.getElementsByClassName("popup-menu")[0], (menu) => {
 	return new Promise((resolve, reject) => {
@@ -343,6 +398,11 @@ document.getElementById("button-open").onclick = function (event) {
 };
 
  document.getElementById("button-ok").onclick = function (event) {
+	var lastRuleId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	if (lastRuleId != null) {
+		saveCurrentRule(lastRuleId);
+	}
+	
 	browser.storage.local.set({
 		"rules": rules
 	}).then(() => {
@@ -365,6 +425,21 @@ document.getElementById("button-open").onclick = function (event) {
 	let ruleName = browser.i18n.getMessage("new_rule_name", ""+(rules.length+1));
 	rules.push({ id: uuidv4(), name: ruleName, sitematch: "", items: [] });
 	updateRules( { rules: rules } );
+ };
+
+ document.getElementById("button-advanced").onclick = function (event) {
+	var lastRuleId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	if (lastRuleId != null) {
+		saveCurrentRule(lastRuleId);
+	}
+	if (!hasClass(document.getElementById("table-cache"), "invisible")) {
+		addClass(document.getElementById("table-cache"), "invisible");
+		removeClass(document.getElementById("table-editor"), "invisible");
+	} else {
+		removeClass(document.getElementById("table-cache"), "invisible");
+		addClass(document.getElementById("table-editor"), "invisible");
+	}
+	clickOnRule(null, lastRuleId);
  };
 
  document.getElementById("button-new-item").onclick = function (event) {
@@ -426,6 +501,7 @@ function logStorageChange(changes) {
 document.getElementById("label-site").textContent = browser.i18n.getMessage("label_site");
 document.getElementById("button-open").title = browser.i18n.getMessage("button_open"); 
 document.getElementById("button-inspect").title = browser.i18n.getMessage("button_inspect"); 
+document.getElementById("button-advanced").title = browser.i18n.getMessage("button_advanced"); 
 document.getElementById("button-new-rule").textContent = browser.i18n.getMessage("button_new_rule");
 document.getElementById("button-new-item").textContent = browser.i18n.getMessage("button_new_item");
 document.getElementById("button-cancel").textContent = browser.i18n.getMessage("button_cancel");

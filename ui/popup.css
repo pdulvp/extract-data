@@ -180,12 +180,22 @@ input {
 
 .table-column-icon { width: 16px; background-repeat: no-repeat; background-position: center; }
 
-.table-column-xpath, .table-column-value {
+.table-column-xpath, .table-column-value, .table-column-editor {
   flex-grow: 1; -webkit-flex-grow: 1;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
   padding-right: 4px;
+}
+
+textarea {
+  border:0px;
+}
+.table-editor-row {
+  height: calc(100% - 26px);
+}
+
+.table-column-xpath, .table-column-value {
+  white-space: nowrap;
 }
 
 .dialog {
@@ -366,6 +376,10 @@ input[readonly]:hover {
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
+.invisible {
+  display:none;
+}
+
 #button-open {
   background:url("open.svg") no-repeat center center ;
   background-size: 16px 16px; 
@@ -373,6 +387,13 @@ input[readonly]:hover {
 #button-inspect {
   background:url("valid.svg") no-repeat center center;
   background-size: 16px 16px; 
+}
+#button-advanced {
+  background:url("expert.svg") no-repeat center center;
+  background-size: 16px 16px; 
+}
+#button-advanced.active {
+  border: 2px solid rgba(0, 200, 0, 0.9);
 }
 .panel {
   margin-top: 4px;

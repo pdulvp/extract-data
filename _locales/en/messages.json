@@ -24,10 +24,11 @@
     "no_rule_for_tab": { "message": "No rule from this page" },
     "error_occured": { "message": "An error occured" },
     "no_result": { "message": "No result" },
-
+    
     "label_site": { "message": "Site:" },
     "button_open": { "message": "Open to a new tab" },
     "button_inspect": { "message": "Execute current rule on the given tab" },
+    "button_advanced": { "message": "Edit items with an advanced textual editor" },
     "options_opened_tab": { "message": "There is no opened tab matching this rule" },
     "button_new_rule": { "message": "New Rule" },
     "button_new_item": { "message": "New item" },

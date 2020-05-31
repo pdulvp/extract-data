@@ -21,15 +21,16 @@
     <div class="resizeable-hpane right-pane">
       <div class="block">
         <label id="label-site" for="fname"></label>
-      <input type="text" id="field-sitematch" name="fname"/>
-      <div class="block-bar">
-        <button id="button-open">&nbsp;</button>
-        <button id="button-inspect" data-menu="popup-menu">&nbsp;</button>
+        <input type="text" id="field-sitematch" name="fname"/>
+        <div class="block-bar">
+          <button id="button-open">&nbsp;</button>
+          <button id="button-inspect" data-menu="popup-menu">&nbsp;</button>
+          <button id="button-advanced">&nbsp;</button>
+        </div>
       </div>
-    </div>
 
     <div id="table-cache" class="table-cache" tabindex="1" ><div class="table-header">
-        <div class="table-column table-column-icon"></div>
+      <div class="table-column table-column-icon"></div>
         <div class="table-column-wrapper">
           <div id="table-column-name" class="table-column table-column-name"></div>
           <div class="table-column-wrapper-2">
@@ -37,10 +38,17 @@
             <div id="table-column-value" class="table-column table-column-value"></div>
           </div>
         </div>
+      </div>
     </div>
+
+    <div id="table-editor" class="table-cache invisible" tabindex="2">
+      <div class="table-header"><div class="table-column table-column-editor">Advanced editor</div></div>
     </div>
-    </div>
+    
   </div>
+
+
+    </div>
   <div id="popup-menu" class="popup-menu">
   </div>
   <div class="button-bar">
