@@ -256,7 +256,7 @@ function editItem(event, rule, item, tabId) {
 			if (storedItem != null) {
 				var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
 				sending.then(element => {
-					item.xpath = element.xpath;
+					storedItem.xpath = element.xpath;
 					storeRules( storage ).then(e => {
 						browser.notifications.create("item@"+storedRule.id+"@"+storedItem.id, {
 							"type": "basic",
