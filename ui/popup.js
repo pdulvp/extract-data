@@ -76,7 +76,7 @@ function updateRules(storage) {
 						let contents = [ createTitle(rule.name, rule.id), createValue(browser.i18n.getMessage("no_result"), rule.id) ];
 						return createPanel(createContent(contents, rule.id), rule.id);
 					}
-					
+
 				}).filter(x => x != null);
 
 				if (rulesRenders.length == 0) {
@@ -142,7 +142,7 @@ function getRuleContent(ruleId, type) {
 			} else if (type == "json") {
 				let content = { "rule": rule.rule.name, items: [] };
 				rule.itemsResults.forEach(x => {
-					content.items.push({ "name": x.item.name, "value": x.value }); 
+					content.items.push({ "name": x.item.name, "value": x.value.join(", "), "values": x.value }); 
 				});
 				return JSON.stringify(content, null, 2);
 			}
