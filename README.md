@@ -98,6 +98,42 @@ On a page, invalid items are displaying a warning aside.
 
 ![Add item](images/issue.png)
 
+### Expression
+
+#### XPath
+
+You can use expression to retrieve one or many elements. 
+
+- `//h1`: returns all h1 elements.
+
+- `/element/@name`: returns the attribute `name` of the element.
+
+- see [XPath](https://developer.mozilla.org/fr/docs/Web/XPath)  for more samples
+
+#### CSS Selectors
+
+You can use CSS Selectors rather than a complicated XPath expression.
+
+- `h1`: returns all h1 elements.
+
+- `#id`: returns element with the given `id` attribute.
+
+- see [CSS Selectors](https://developer.mozilla.org/fr/docs/Web/CSS/CSS_Selectors) for more samples
+
+
+#### Predefined expressions
+
+You can also use one of the predefined expressions below.
+
+- `document.location`
+- `document.location.href`
+- `document.location.protocol`
+- `document.location.host`
+- `document.location.hostname`
+- `document.location.port`
+- `document.location.pathname`
+- `document.location.origin`
+
 ### Validation indicators
 
 Especially when a rule is covered by a `Regular Expression`, selected items may not work on some matched pages.
