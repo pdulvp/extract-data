@@ -73,7 +73,7 @@ function getRulesResult(storage) {
 	let results = storage.rules.filter(r => doesMatch(document.URL, r.sitematch)).map(r => {
 		let items = r.items.map(i => {
 			
-			let elements = getElementsByXpath(i.xpath);
+			let elements = getElementsByExpression(i.xpath);
 			let value = null;
 			if (elements != null) {
 				value = elements.map(e => {
@@ -102,7 +102,7 @@ function getRulesResult(storage) {
 function highlightResult(result) {
 	result.rulesResults.forEach(rule => {
 		rule.itemsResults.forEach(i => {
-			let elements = getElementsByXpath(i.item.xpath);
+			let elements = getElementsByExpression(i.item.xpath);
 			if (elements != null) {
 				elements.forEach(e => highlight(e));
 			}
@@ -133,12 +133,35 @@ function highlight(element) {
 
 browser.runtime.onMessage.addListener(handleMessage);
 
+function getElementsByExpression(path) {
+	if (path == null || path.length == 0) {
+		console.log("no path to evaluate");
+		return null;
+	}
+	
+	let result = getElementsByXpath(path);
+	if (result == null || result.length == 0) {
+		result = getElementsBySelector(path);
+	}
+	return result;
+}
+
+function getElementsBySelector(path) {
+	try {
+		let evaluation = document.querySelectorAll(path);
+		let result = [];
+		for (i = 0; i < evaluation.length; ++i) {
+			result.push(evaluation[i]);
+		}
+		return result;
+
+	} catch(e) {
+		return null;
+	}
+}
+
 function getElementsByXpath(path) {
 	try {
-		if (path == null || path.length == 0) {
-			console.log("no path to evaluate");
-			return null;
-		}
 		let evaluation = document.evaluate(path, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 		let result = [];
 		for(var i = 0; i < evaluation.snapshotLength; i++) {
