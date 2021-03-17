@@ -43,7 +43,6 @@ function updateRules(storage) {
 		sending.then((ree) => {
 			Results = ree;
 
-			let result = '';
 			if (ree != null && ree.result != null) {
 				let matchingRules = ree.result.rulesResults.filter(r => {
 					let rule = findRule(r.id);
@@ -77,6 +76,7 @@ function updateRules(storage) {
 						let contents = [ createTitle(rule.name, rule.id), createValue(browser.i18n.getMessage("no_result"), rule.id) ];
 						return createPanel(createContent(contents, rule.id), rule.id);
 					}
+					
 				}).filter(x => x != null);
 
 				if (rulesRenders.length == 0) {
@@ -133,7 +133,7 @@ function getRuleContent(ruleId, type) {
 					}
 					let value = x.value;
 					if (value != null) {
-						value = value.replace(/\t/g, '');
+						value = value.toString().replace(/\t/g, '');
 					}
 					return `${name}\t${value}`;
 				}).join("\n");
