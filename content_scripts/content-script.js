@@ -76,7 +76,21 @@ function getRulesResult(storage) {
 			let elements = getElementsByXpath(i.xpath);
 			let value = null;
 			if (elements != null) {
-				value = elements.map(e => e.textContent);
+				value = elements.map(e => {
+					if (e === null) {
+						return null;
+					} else if (typeof e === 'object') {
+						if (!(e.tagName) && e.ownerElement != null && e.ownerElement.hasAttribute(e.nodeName)) {
+							return e.ownerElement[e.nodeName];
+						} else if (e.tagName.toLowerCase() == "input") {
+							return e.value;
+						} else {
+							return e.textContent;
+						}
+					} else {
+						return e;
+					}
+				});
 			}
 			return { id: i.id, item: i, valid: elements != null, value: value } ;
 		});
@@ -97,19 +111,24 @@ function highlightResult(result) {
 }
 
 function highlight(element) {
-	if (!element.hasAttribute("previous")) {
-		element.setAttribute("previous", element.getAttribute("style"));
+	if (!element.tagName) {
+		element = element.ownerElement;
 	}
-	element.setAttribute("style", "background-color: red; border: 5px solide red;");
-	setTimeout(e => {
-		let previous = element.getAttribute("previous");
-		if (previous != null) {
-			element.setAttribute("style", previous);
-		} else {
-			element.removeAttribute("style");
-			element.removeAttribute("previous");
+	if (element.tagName) {
+		if (!element.hasAttribute("previous")) {
+			element.setAttribute("previous", element.getAttribute("style"));
 		}
-	}, 1000);
+		element.setAttribute("style", "background-color: red; border: 5px solide red;");
+		setTimeout(e => {
+			let previous = element.getAttribute("previous");
+			if (previous != null) {
+				element.setAttribute("style", previous);
+			} else {
+				element.removeAttribute("style");
+				element.removeAttribute("previous");
+			}
+		}, 1000);
+	}
 }
 
 browser.runtime.onMessage.addListener(handleMessage);
@@ -120,10 +139,12 @@ function getElementsByXpath(path) {
 			console.log("no path to evaluate");
 			return null;
 		}
-		let evaluation = document.evaluate(path, document, null, XPathResult.ANY_TYPE, null);
-		var node, result = []
-		while (node = evaluation.iterateNext())
+		let evaluation = document.evaluate(path, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+		let result = [];
+		for(var i = 0; i < evaluation.snapshotLength; i++) {
+			var node = evaluation.snapshotItem(i);
 			result.push(node);
+		}
 		return result;
 
 	} catch(e) {
