@@ -84,6 +84,8 @@ function getRulesResult(storage) {
 							return e.ownerElement[e.nodeName];
 						} else if (e.tagName.toLowerCase() == "input") {
 							return e.value;
+						} else if (e.tagName.toLowerCase() == "meta") {
+							return e.content;
 						} else {
 							return e.textContent;
 						}
