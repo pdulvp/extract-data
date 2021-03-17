@@ -221,6 +221,12 @@ function createPanel(content, id) {
 		button3.textContent = "RAW";
 		button3.setAttribute("type", "raw");
 		child3.appendChild(button3);
+
+		let button4 = document.createElement("div");
+		addClass(button4, "panel-icon");
+		button4.textContent = "EDIT";
+		button4.setAttribute("type", "edit");
+		child3.appendChild(button4);
 	}
 	child.appendChild(child3);
 
@@ -233,6 +239,11 @@ function createPanel(content, id) {
 		}
 
 		if (ruleId != undefined) {
+			if (type == "edit") {
+				openOptions(ruleId);
+				return;
+			}
+	
 			let content = getRuleContent(ruleId, type);
 			copyToClipboard(content);
 			browser.notifications.create(uuidv4(), {
