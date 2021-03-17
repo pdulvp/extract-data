@@ -35,7 +35,7 @@
     "button_ok": { "message": "OK" },
     "button_cancel": { "message": "Cancel" },
     "table_column_name": { "message": "Name" },
-    "table_column_xpath": { "message": "XPath" },
+    "table_column_xpath": { "message": "XPath / DOM Selector" },
     "table_column_value": { "message": "Value" }
     
 }
