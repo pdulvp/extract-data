@@ -11,6 +11,7 @@
 :root {
   --row-hover: rgba(100, 0, 255, 0.02);
   --row-active: rgba(100, 0, 255, 0.2);
+  --row-active-color: rgba(0, 0, 0);
   --popup-width: 300px;
   --popup-background: rgb(255, 255, 255);
   --dialog-background: rgb(242, 242, 248);
@@ -26,6 +27,7 @@
   :root {
     --row-hover: rgba(100, 0, 255, 0.2);
     --row-active: rgba(100, 0, 255, 0.5);
+    --row-active-color: rgba(230, 230, 230);
     --popup-background: rgb(50, 50, 60);
     --dialog-background: rgb(50, 50, 60);
     --inner-box-color: rgb(100, 100, 100);
@@ -92,9 +94,11 @@ input {
 }
 .table-row.active, .table-row.active input {
   background-color: var(--row-active);
+  color: var(--row-active-color) !important;
 }
 .table-row.active:hover, .table-row.active:hover input{
   background-color: var(--row-active);
+  color: var(--row-active-color) !important;
 }
 .table-row:hover, .table-row:hover input {
   background-color: var(--row-hover);
