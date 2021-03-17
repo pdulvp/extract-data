@@ -73,12 +73,12 @@ function getRulesResult(storage) {
 	let results = storage.rules.filter(r => doesMatch(document.URL, r.sitematch)).map(r => {
 		let items = r.items.map(i => {
 			
-			let element = getElementByXpath(i.xpath);
+			let elements = getElementsByXpath(i.xpath);
 			let value = null;
-			if (element != null) {
-				value = element.textContent;
+			if (elements != null) {
+				value = elements.map(e => e.textContent);
 			}
-			return { id: i.id, item: i, valid: element != null, value: value } ;
+			return { id: i.id, item: i, valid: elements != null, value: value } ;
 		});
 		return { id: r.id, rule: r, itemsResults: items } ;
 	});
@@ -88,9 +88,9 @@ function getRulesResult(storage) {
 function highlightResult(result) {
 	result.rulesResults.forEach(rule => {
 		rule.itemsResults.forEach(i => {
-			let element = getElementByXpath(i.item.xpath);
-			if (element != null) {
-				highlight(element);
+			let elements = getElementsByXpath(i.item.xpath);
+			if (elements != null) {
+				elements.forEach(e => highlight(e));
 			}
 		});
 	});
@@ -114,13 +114,18 @@ function highlight(element) {
 
 browser.runtime.onMessage.addListener(handleMessage);
 
-function getElementByXpath(path) {
+function getElementsByXpath(path) {
 	try {
 		if (path == null || path.length == 0) {
 			console.log("no path to evaluate");
 			return null;
 		}
-		return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+		let evaluation = document.evaluate(path, document, null, XPathResult.ANY_TYPE, null);
+		var node, result = []
+		while (node = evaluation.iterateNext())
+			result.push(node);
+		return result;
+
 	} catch(e) {
 		return null;
 	}
