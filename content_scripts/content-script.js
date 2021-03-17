@@ -82,16 +82,19 @@ function getRulesResult(storage) {
 					} else if (typeof e === 'object') {
 						if (!(e.tagName) && e.ownerElement != null && e.ownerElement.hasAttribute(e.nodeName)) {
 							return e.ownerElement[e.nodeName];
-						} else if (e.tagName.toLowerCase() == "input") {
-							return e.value;
-						} else if (e.tagName.toLowerCase() == "meta") {
-							return e.content;
-						} else {
-							return e.textContent;
+						} else if (e.tagName) {
+							if (e.tagName.toLowerCase() == "input") {
+								return e.value;
+							} else if (e.tagName.toLowerCase() == "meta") {
+								return e.content;
+							} else if (e.textContent) {
+								return e.textContent;
+							}
 						}
-					} else {
+					} else if (typeof e === 'string') {
 						return e;
 					}
+					return e;
 				});
 			}
 			return { id: i.id, item: i, valid: elements != null, value: value } ;
@@ -113,10 +116,10 @@ function highlightResult(result) {
 }
 
 function highlight(element) {
-	if (!element.tagName) {
+	if (element != undefined && !element.tagName) {
 		element = element.ownerElement;
 	}
-	if (element.tagName) {
+	if (element != undefined && element.tagName) {
 		if (!element.hasAttribute("previous")) {
 			element.setAttribute("previous", element.getAttribute("style"));
 		}
@@ -136,16 +139,58 @@ function highlight(element) {
 browser.runtime.onMessage.addListener(handleMessage);
 
 function getElementsByExpression(path) {
+	let result = null;
 	if (path == null || path.length == 0) {
 		console.log("no path to evaluate");
-		return null;
+		return result;
 	}
-	
-	let result = getElementsByXpath(path);
+	if (result == null || result.length == 0) {
+		result = getElementsByPredefinedExpressions(path);
+	}
+	if (result == null || result.length == 0) {
+		result = getElementsByXpath(path);
+	}
 	if (result == null || result.length == 0) {
 		result = getElementsBySelector(path);
 	}
 	return result;
+}
+
+function getElementsByPredefinedExpressions(path) {
+	let object = {
+		document: () => { return {
+			location: () => { return {
+					href: () => { return document.location.href },
+					protocol: () => { return document.location.protocol },
+					host: () => { return document.location.host },
+					hostname: () => { return document.location.hostname },
+					port: () => { return document.location.port },
+					pathname: () => { return document.location.pathname },
+					origin: () => { return document.location.origin },
+					toString: () => { return document.location.toString() }
+			} }
+		} }
+	};
+
+	try {
+		let root = object;
+		let evaluation = path.split(".");
+		for (i = 0; i < evaluation.length; ++i) {
+			if (root != undefined) {
+				let t = evaluation[i];
+				let t2= root[t];
+				root = t2();
+			}
+		}
+		if (typeof root === 'object' && root != undefined) {
+			root = root.toString();
+		}
+		let result = [];
+		result.push(root);
+		return result;
+	} catch(e) {
+		return null;
+	}
 }
 
 function getElementsBySelector(path) {
