@@ -202,15 +202,17 @@ function clickOnRule(previousRuleId, ruleId) {
 function setItemResult(itemResult) {
 	var table = document.getElementById("table-cache");
 	var row = Array.from(table.childNodes).find(e => e.id == itemResult.id);
-	let icon = Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column table-column-icon");
+	let icon = Array.from(row.childNodes).find(e => e.getAttribute("class").indexOf("icon") > -1);
 	let value = Array.from(Array.from(Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column-wrapper").childNodes).find(e => e.getAttribute("class") == "table-column-wrapper-2").childNodes).find(e => e.getAttribute("class") == "table-column table-column-value");
 	if (icon) {
 		if (itemResult.valid) {
 			addClass(row, "valid");
+			removeClass(icon, "icon-warning");
 			addClass(icon, "icon-valid");
 			value.textContent = itemResult.value;
 		} else {
 			addClass(row, "warning");
+			removeClass(icon, "icon-valid");
 			addClass(icon, "icon-warning");
 			value.textContent = " ";
 		}
