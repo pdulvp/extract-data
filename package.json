@@ -1,0 +1,26 @@
+{
+  "name": "extract-data",
+  "version": "1.6.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "bump": "node releng/bump.js",
+    "make": "powershell -NoProfile -ExecutionPolicy Unrestricted -Command releng/make.ps1",
+    "test": "node tests/manifest.test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pdulvp/extract-data.git"
+  },
+  "author": "pdulvp@laposte.net",
+  "license": "CC-BY-NC-ND-4.0",
+  "bugs": {
+    "url": "https://github.com/pdulvp/extract-data/issues"
+  },
+  "homepage": "https://github.com/pdulvp/extract-data#readme",
+  "dependencies": {
+    "@pdulvp/fsh": "^1.1.2"
+  }
+}
