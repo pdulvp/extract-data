@@ -8,7 +8,7 @@
   "scripts": {
     "bump": "node releng/bump.js",
     "make": "powershell -NoProfile -ExecutionPolicy Unrestricted -Command releng/make.ps1",
-    "test": "node tests/manifest.test"
+    "test": "powershell -NoProfile -ExecutionPolicy Unrestricted -Command releng/tests.ps1"
   },
   "repository": {
     "type": "git",

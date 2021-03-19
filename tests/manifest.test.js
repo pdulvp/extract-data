@@ -1,6 +1,5 @@
 let testh = require("./testh");
 let fsh = require("@pdulvp/fsh");
-testh.init(__filename.slice(__dirname.length + 1));
 
 function filterNotExist(files) {
     return files.map(s => { return { name: s, exist: fsh.fileExists(s) } } ).filter(s => !s.exist).map(x => x.name);
