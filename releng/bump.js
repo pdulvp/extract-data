@@ -16,7 +16,7 @@ var readh = {
     }
 }
 
-readh.input("Version ?").then(answer => {
+readh.input("Version ? ").then(answer => {
 	console.log(answer);
 	return Promise.resolve(answer).then(e => {
 		return fsh.read("package.json").then(p => {
