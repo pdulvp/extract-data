@@ -75,6 +75,10 @@ input {
   background-color: var(--inner-item);
   color: var(--dialog-color);
 }
+a {
+  color: var(--dialog-color);
+}
+
 
 .table-header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
