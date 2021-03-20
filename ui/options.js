@@ -11,16 +11,29 @@
 var browser = compat.adaptBrowser();
 var rules = [];
 
+var optionsUi = {
+	activeRules: function() {
+		let left = document.getElementById("left");
+		let activeIds = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
+		return activeIds;
+	},
+
+	lastActiveRule: function() {
+		let left = document.getElementById("left");
+		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		return lastActiveId;
+	}
+}
+
 function updateRules(response) {
 	rules = response.rules;
 	var left = document.getElementById("left");
-	var activeIds = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
+	var activeIds = optionsUi.activeRules();
 	while (left.firstChild) {
 		left.removeChild(left.lastChild);
 	}
 	rules.forEach(rule => {
-		var item = createRuleEntry(rule.name);
-		item.setAttribute("rule-id", rule.id);
+		var item = createRuleEntry(rule);
 		left.appendChild(item);
 	});
 	Array.from(left.childNodes).filter(x => activeIds.includes(x.getAttribute("rule-id"))).forEach(x => common.addClass(x, "active"));
@@ -45,7 +58,7 @@ common.registerEditor(document.getElementById("left"), editor => {
 document.getElementById("left").addEventListener("keydown", event => {
 	if (event.code == "Delete") {
 		var left = document.getElementById("left");
-		var ruleIds = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
+		var ruleIds = optionsUi.activeRules();
 		
 		if (ruleIds.length > 0) {
 			let nextId = findNextAfterDeletion(rules, ruleIds[ruleIds.length-1]);
@@ -59,7 +72,7 @@ document.getElementById("left").addEventListener("keydown", event => {
 
 document.getElementById("left").addEventListener("click", event => {
 	if (common.hasClass(event.target, "left-pane-item")) {
-		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastActiveId = optionsUi.lastActiveRule();
 		clickOnRule(lastActiveId, event.target.getAttribute("rule-id"));
 	}
 });
@@ -86,7 +99,7 @@ table.addEventListener("click", event => {
 
 common.registerEditor(document.getElementById("table-cache"), editor => {
 	var left = document.getElementById("left");
-	var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastActiveId = optionsUi.lastActiveRule();
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
 		var lastItemId = editor.getAttribute("item-id");
@@ -100,7 +113,7 @@ common.registerEditor(document.getElementById("table-cache"), editor => {
 
 }, editor => {
 	var left = document.getElementById("left");
-	var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastActiveId = optionsUi.lastActiveRule();
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
 		var lastItemId = editor.getAttribute("item-id");
@@ -151,7 +164,7 @@ document.getElementById("table-cache").addEventListener("keydown", event => {
 
 if (document.getElementById("field-sitematch")) {
 	document.getElementById("field-sitematch").oninput = function (event) {
-		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastActiveId = optionsUi.lastActiveRule();
 		let rule = rules.find(r => r.id == lastActiveId);
 		if (rule) {
 			rule.sitematch = event.target.value;
@@ -255,10 +268,11 @@ function saveCurrentRule(ruleId) {
 	}
 }
 
-function createRuleEntry(label) {
+function createRuleEntry(rule) {
     var node = document.createElement("input");
 	common.addClass(node, "left-pane-item");
-	node.value = label;
+	node.value = rule.name;
+	node.setAttribute("rule-id", rule.id);
 	node.setAttribute("readonly", "readonly");
 	return node;
 }
@@ -333,7 +347,7 @@ common.registerDropdownMenu(document.getElementById("button-inspect"), document.
 		while (menu.firstChild) {
 			menu.removeChild(menu.lastChild);
 		}
-		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastActiveId = optionsUi.lastActiveRule();
 		let rule = rules.find(r => r.id == lastActiveId);
 		if (rule) {
 			browser.tabs.query({}, (tabs) => {
@@ -365,7 +379,7 @@ common.registerDropdownMenu(document.getElementById("button-inspect"), document.
 	browser.tabs.query({}, (tabs) => {
 		console.log(tabs);
 		let tab = tabs.filter(x => x.id == tabId).find(x => true);
-		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastActiveId = optionsUi.lastActiveRule();
 
 		browser.tabs.update(tab.id, { active: true}).then(result => {
 			var sending = browser.tabs.sendMessage(tab.id, { "action": "highlight", rule: rules.find(r => r.id == lastActiveId) } );
@@ -445,7 +459,7 @@ document.getElementById("button-open").onclick = function (event) {
  };
 
  document.getElementById("button-new-item").onclick = function (event) {
-	var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastActiveId = optionsUi.lastActiveRule();
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
 		let itemName = browser.i18n.getMessage("new_item_name", ""+(rule.items.length+1));
@@ -458,7 +472,7 @@ document.getElementById("button-open").onclick = function (event) {
 function restoreWindow() {
 	var urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('initialRule')) {
-		lastActiveId = urlParams.get('initialRule');
+		let lastActiveId = urlParams.get('initialRule');
 		let itemId = null;
 		if (urlParams.has('initialItem')) {
 			itemId = urlParams.get('initialItem');
@@ -471,7 +485,7 @@ function restoreWindow() {
 
 function restoreOptions(idIndex, itemId) {
 	let ruleIdIndex = idIndex;
-	var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastActiveId = optionsUi.lastActiveRule();
 	if (lastActiveId != null) {
 		ruleIdIndex = idIndex;
 	}
