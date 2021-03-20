@@ -31,3 +31,21 @@ common.removeClass(item, "b");
 testh.check("item doesn't have a class", () => {
     return item.getAttribute("class") == "";
 });
+
+
+
+let rules = { rules: [
+    { "name": "Rule1", "items": [
+        { "name" : "Item1", "xpath": "ooooo" }
+    ]}
+]};
+
+common.storage.migrateRules(rules, undefined, "1.6.0").then(result => {
+    testh.check( "xpath not removed", () => { 
+        return result.rules[0].items[0].xpath == undefined;
+    });
+    testh.check( "expression not migrated", () => { 
+        return result.rules[0].items[0].expression == "ooooo";
+    });
+});
+
