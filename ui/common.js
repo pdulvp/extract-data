@@ -13,6 +13,65 @@ var browser = compat.adaptBrowser();
 
 var common = {
 	
+	storage: {
+		getRules: function() {
+			return new Promise(function(resolve, reject) {
+				browser.storage.local.get('version').then(versionStorage => {
+					browser.storage.local.get('rules').then((ruleStorage) => {
+						return common.storage.migrateRules(ruleStorage, versionStorage.version, browser.runtime.getManifest().version);
+					
+					}).then(ruleStorage => {
+						if (ruleStorage.rules && Array.isArray(ruleStorage.rules)) {
+							resolve( { rules: ruleStorage.rules } );
+						} else {
+							resolve( { rules: [] } );
+						}
+					}, (error) => {
+						resolve( { rules: [] } );
+					});
+				});
+			});
+		},
+
+		setRules: function(rulesStorage) {
+			let storage = {};
+			storage.rules = rulesStorage.rules;
+			storage.version = browser.runtime.getManifest().version;
+			return browser.storage.local.set(storage);
+		},
+
+		addRulesChangedListener: function(listener) {
+			browser.storage.onChanged.addListener(listener);
+		},
+
+		removeRulesChangedListener: function(listener) {
+			browser.storage.onChanged.removeListener(listener);
+		}, 
+
+		migrateRules: function(storage, fromVersion, toVersion) {
+			return new Promise(function(resolve, reject) {
+				if (fromVersion == toVersion) {
+					resolve( storage );
+					return;
+				}
+				console.log(`Migration from ${fromVersion} to ${toVersion}`);
+				if (storage.rules && Array.isArray(storage.rules)) {
+					if (fromVersion == undefined) {
+						storage.rules.forEach(rule => {
+							rule.items.forEach(item => {
+								item.expression = item.xpath;
+								delete item.xpath;
+							})
+						});
+					}
+				}
+				common.storage.setRules(storage).then(e => {
+					resolve( storage );
+				});
+			});
+		}
+	},
+
 	hasClass: (item, value) => {
 		return item.getAttribute("class") != null && (item.getAttribute("class").includes(value));
 	},

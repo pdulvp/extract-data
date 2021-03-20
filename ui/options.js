@@ -234,13 +234,13 @@ function saveCurrentRule(ruleId) {
 					let obj = JSON.parse(table.lastChild.firstChild.value);
 					if (Array.isArray(obj)) {
 						obj.forEach(i => {
-							let item = { id : common.uuidv4(), name: i.name, xpath: i.xpath};
+							let item = { id : common.uuidv4(), name: i.name, expression: i.expression};
 							if (!(typeof item.name === 'string' || item.name instanceof String)) {
 								let itemName = browser.i18n.getMessage("new_item_name", ""+(items.length+1));
 								item.name = itemName;
 							}
-							if (!(typeof item.xpath === 'string' || item.xpath instanceof String)) {
-								item.xpath = "";
+							if (!(typeof item.expression === 'string' || item.expression instanceof String)) {
+								item.expression = "";
 							}
 							items.push(item);
 						});
@@ -292,10 +292,10 @@ function createCacheEntry(item) {
 
 	child = document.createElement("input");
 	child.setAttribute("type", "text");
-	common.addClass(child, "table-column table-column-xpath");
+	common.addClass(child, "table-column table-column-expression");
 	child.setAttribute("item-id", item.id);
-	child.setAttribute("item-data", "xpath");
-	child.value = item.xpath;
+	child.setAttribute("item-data", "expression");
+	child.value = item.expression;
 	child.setAttribute("readonly", "readonly");
 	childWrapper2.appendChild(child);
 
@@ -319,7 +319,7 @@ function createCacheEditor(items) {
 	items.forEach(i => {
 		let item = {};
 		item.name = i.name;
-		item.xpath = i.xpath;
+		item.expression = i.expression;
 		content.push(item);
 	});
 	child.value = JSON.stringify(content, null, 2);
@@ -405,20 +405,20 @@ document.getElementById("button-open").onclick = function (event) {
 		saveCurrentRule(lastRuleId);
 	}
 	
-	browser.storage.local.set({
+	common.storage.setRules({
 		"rules": rules
 	}).then(() => {
-		browser.storage.onChanged.removeListener(logStorageChange);
+		common.storage.removeRulesChangedListener(logStorageChange);
 		window.close();
 	}, (error) => {
 		console.log(error);
-		browser.storage.onChanged.removeListener(logStorageChange);
+		common.storage.removeRulesChangedListener(logStorageChange);
 		window.close();
 	});
  };
 
  document.getElementById("button-cancel").onclick = function (event) {
-	browser.storage.onChanged.removeListener(logStorageChange);
+	common.storage.removeRulesChangedListener(logStorageChange);
 	window.close();
  };
 
@@ -449,7 +449,7 @@ document.getElementById("button-open").onclick = function (event) {
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
 		let itemName = browser.i18n.getMessage("new_item_name", ""+(rule.items.length+1));
-		rule.items.push({ id: common.uuidv4(), name: itemName, xpath: "" });
+		rule.items.push({ id: common.uuidv4(), name: itemName, expression: "" });
 	}
 	updateRules( { rules: rules } );
 	clickOnRule(lastActiveId, lastActiveId);
@@ -476,7 +476,7 @@ function restoreOptions(idIndex, itemId) {
 		ruleIdIndex = idIndex;
 	}
 	
-	browser.storage.local.get('rules').then((res) => {
+	common.storage.getRules().then((res) => {
 		if (res.rules && Array.isArray(res.rules)) {
 			updateRules( { rules: res.rules } );
 			let ruleId = ruleIdIndex;
@@ -510,11 +510,11 @@ document.getElementById("button-cancel").textContent = browser.i18n.getMessage("
 document.getElementById("button-ok").textContent = browser.i18n.getMessage("button_ok");
 document.getElementById("table-column-value").textContent = browser.i18n.getMessage("table_column_value");
 document.getElementById("table-column-name").textContent = browser.i18n.getMessage("table_column_name");
-document.getElementById("table-column-xpath-text").textContent = browser.i18n.getMessage("table_column_xpath");
+document.getElementById("table-column-expression-text").textContent = browser.i18n.getMessage("table_column_expression");
 
 
 document.addEventListener('DOMContentLoaded', restoreWindow);
-browser.storage.onChanged.addListener(logStorageChange);
+common.storage.addRulesChangedListener(logStorageChange);
 
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setSelection") {

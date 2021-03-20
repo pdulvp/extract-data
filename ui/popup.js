@@ -13,7 +13,7 @@ var Results = null;
 var browser = compat.adaptBrowser();
 
 function restoreOptions() {
-	browser.storage.local.get('rules').then((res) => {
+	common.storage.getRules().then((res) => {
 		if (res.rules && Array.isArray(res.rules)) {
 			updateRules( { rules: res.rules } );
 		} else {
@@ -127,7 +127,7 @@ function getRuleContent(ruleId, type) {
 
 			} else if (type == "xls") {
 				let content = rule.itemsResults.map(x => {
-					let name = x.item.name; 
+					let name = x.item.name;
 					if (name != null) {
 						name = name.replace(/\t/g, '');
 					}
@@ -299,7 +299,7 @@ function onStorageChange() {
 }
 
 browser.runtime.onMessage.addListener(handleMessage);
-browser.storage.onChanged.addListener(onStorageChange);
+common.storage.addRulesChangedListener(onStorageChange);
 
 function findRule(ruleId) {
 	if (Rules != null)  {

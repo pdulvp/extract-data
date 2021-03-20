@@ -8,6 +8,7 @@
  @author: pdulvp@laposte.net
  */
 
+var common = (typeof module === "object") ? require("../ui/common") : common;
 var browser = compat.adaptBrowser();
 let clickedElement;
 
@@ -35,7 +36,7 @@ function restoreOptions() {
 		const sending = browser.runtime.sendMessage({ "action": "setResult", "result": result});
 		sending.then(x => {}, x => {}); 
 	}
-	browser.storage.local.get('rules').then((res) => {
+	common.storage.getRules().then((res) => {
 		if (res.rules && Array.isArray(res.rules)) {
 			
 			mutationObserver.observe(document.documentElement, {
@@ -64,7 +65,7 @@ function handleMessage(request, sender, sendResponse) {
 		if (clickedElement != null) {
 			highlight(clickedElement);
 		}
-		sendResponse( { xpath: getXPathForElement(clickedElement, document) } );
+		sendResponse( { expression: getXPathForElement(clickedElement, document) } );
 	}
 }
 
@@ -72,7 +73,7 @@ function getRulesResult(storage) {
 	let results = storage.rules.filter(r => common.doesMatch(document.URL, r.sitematch)).map(r => {
 		let items = r.items.map(i => {
 			
-			let elements = getElementsByExpression(i.xpath);
+			let elements = getElementsByExpression(i.expression);
 			let value = null;
 			if (elements != null) {
 				value = elements.map(e => {
@@ -106,7 +107,7 @@ function getRulesResult(storage) {
 function highlightResult(result) {
 	result.rulesResults.forEach(rule => {
 		rule.itemsResults.forEach(i => {
-			let elements = getElementsByExpression(i.item.xpath);
+			let elements = getElementsByExpression(i.item.expression);
 			if (elements != null) {
 				elements.forEach(e => highlight(e));
 			}
@@ -243,7 +244,7 @@ function getXPathForElement(el, xml) {
 }
 
 
-browser.storage.onChanged.addListener(restoreOptions);
+common.storage.addRulesChangedListener(restoreOptions);
 document.addEventListener("mousedown", clickListener, true);
 
 restoreOptions();
