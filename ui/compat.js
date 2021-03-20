@@ -114,7 +114,6 @@ var compat = {
                     });
                 }
             },
-            
             runtime: {
                 sendMessage: function(object) {
                     return new Promise((resolve, reject) => {
@@ -130,7 +129,8 @@ var compat = {
                         });
                     });
                 },
-                onMessage: chrome.runtime.onMessage
+                onMessage: chrome.runtime.onMessage, 
+                getManifest: chrome.runtime.getManifest
             },
             i18n: chrome.i18n,
             extension: chrome.extension,

@@ -55,7 +55,7 @@ You can do basic stuff:
 
 You can do better stuff:
 - Use a **Regular expression for Site**
-- Edit XPath (even if contextual menu `Change Item #XX` allows easier change)
+- Edit Expression (even if contextual menu `Change Item #XX` allows easier change)
 - Validate if your rules are working properly (see dedicated section)
 
 ![Add item](images/popup-account.png)

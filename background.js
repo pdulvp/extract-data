@@ -1,4 +1,6 @@
-﻿/* 
+﻿var common = (typeof module === "object") ? require("../ui/common") : common;
+
+/* 
  This Code is published under the terms and conditions of the CC-BY-NC-ND-4.0
  (https://creativecommons.org/licenses/by-nc-nd/4.0)
  
@@ -37,7 +39,7 @@ function equals(result1, result2) {
 		} else if (i1.item.name != i2.item.name) {
 			return true;
 
-		} else if (i1.item.xpath != i2.item.xpath) {
+		} else if (i1.item.expression != i2.item.expression) {
 			return true;
 
 		}
@@ -120,7 +122,7 @@ function updateBadge(tabId, animate) {
 browser.runtime.onMessage.addListener(handleMessage);
 
 function onStorageChange() {
-	getStoredRules(updateRules);
+	common.storage.getRules().then(storage => updateRules(storage));
 }
 
 function onTabChange(activeInfo) {
@@ -132,22 +134,10 @@ function onTabChange(activeInfo) {
 	});
 }
 
-browser.storage.onChanged.addListener(onStorageChange);
+common.storage.addRulesChangedListener(onStorageChange);
 browser.tabs.onActivated.addListener(onTabChange);
 
 onStorageChange();
-
-function getStoredRules(callback) {
-	browser.storage.local.get('rules').then((res) => {
-		if (res.rules && Array.isArray(res.rules)) {
-			callback( { rules: res.rules } );
-		} else {
-			callback( { rules: [] } );
-		}
-	}, (error) => {
-		callback( { rules: [] } );
-	});
-}
 
 function onClickNotification(notification) {
 	if (notification.indexOf("@")>0) {
@@ -170,20 +160,20 @@ function encodeRegex(url) {
 }
 
 function createNewRule(event, tabId) {
-	getStoredRules(storage => {
+	common.storage.getRules().then(storage => {
 		let ruleName = browser.i18n.getMessage("new_rule_name", ""+(storage.rules.length+1));
 
 		let storedRule = { id: common.uuidv4(), name: ruleName, sitematch: encodeRegex(event.pageUrl), items: [] };
 		storage.rules.push(storedRule);
 
 		let itemName = browser.i18n.getMessage("new_item_name", ""+(storedRule.items.length+1));
-		let item = { id: common.uuidv4(), name: itemName, xpath: "" };
+		let item = { id: common.uuidv4(), name: itemName, expression: "" };
 		storedRule.items.push(item);
 		
 		var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
 		sending.then(element => {
-			item.xpath = element.xpath;
-			storeRules( storage ).then(e => {
+			item.expression = element.expression;
+			common.storage.setRules( storage ).then(e => {
 				browser.notifications.create("rule@"+storedRule.id, {
 					"type": "basic",
                     "iconUrl" : browser.extension.getURL("icons/icon.svg"),
@@ -198,23 +188,23 @@ function createNewRule(event, tabId) {
 				});
 			});
 		}, x => {
-			storeRules( storage );
+			common.storage.setRules( storage );
 		});
 	});
 }
 
 function createNewItem(event, rule, tabId) {
-	getStoredRules(storage => {
+	common.storage.getRules().then(storage => {
 		let storedRule = storage.rules.find(r => r.id == rule.id);
 		if (storedRule != null) {
 			let itemName = "Item #"+(storedRule.items.length+1);
-			let item = { id: common.uuidv4(), name: itemName, xpath: "" };
+			let item = { id: common.uuidv4(), name: itemName, expression: "" };
 			storedRule.items.push(item);
 
 			var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
 			sending.then(element => {
-				item.xpath = element.xpath;
-				storeRules(storage).then(e => {
+				item.expression = element.expression;
+				common.storage.setRules(storage).then(e => {
 					browser.notifications.create("item@"+storedRule.id+"@"+item.id, {
 						"type": "basic",
 						"iconUrl" : browser.extension.getURL("icons/icon.svg"),
@@ -228,7 +218,7 @@ function createNewItem(event, rule, tabId) {
 				});
 			}, x => {
 				console.log("err");
-				storeRules( storage );
+				common.storage.setRules( storage );
 			});
 		}
 	});
@@ -236,7 +226,7 @@ function createNewItem(event, rule, tabId) {
 
 
 function highlightRule(event, rule, tabId) {
-	getStoredRules(storage => {
+	common.storage.getRules().then(storage => {
 		let storedRule = storage.rules.find(r => r.id == rule.id);
 		if (storedRule != null) {
 			var sending = browser.tabs.sendMessage(tabId, { "action": "highlight", rule: storedRule } );
@@ -250,15 +240,15 @@ function editRule(ruleId, itemId) {
 }
 
 function editItem(event, rule, item, tabId) {
-	getStoredRules(storage => {
+	common.storage.getRules().then(storage => {
 		let storedRule = storage.rules.find(r => r.id == rule.id);
 		if (storedRule != null) {
 			let storedItem = storedRule.items.find(i => i.id == item.id);
 			if (storedItem != null) {
 				var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
 				sending.then(element => {
-					storedItem.xpath = element.xpath;
-					storeRules( storage ).then(e => {
+					storedItem.expression = element.expression;
+					common.storage.setRules( storage ).then(e => {
 						browser.notifications.create("item@"+storedRule.id+"@"+storedItem.id, {
 							"type": "basic",
 							"iconUrl" : browser.extension.getURL("icons/icon.svg"),
@@ -271,15 +261,11 @@ function editItem(event, rule, item, tabId) {
 						});
 					});
 				}, x => {
-					storeRules( storage );
+					common.storage.setRules( storage );
 				});
 			}
 		}
 	});
-}
-
-function storeRules(storage) {
-	return browser.storage.local.set(storage);
 }
 
 function getOrCreateMenu(data) {
@@ -391,7 +377,7 @@ function updateContextMenu(tab) {
 		visible: createRule
 	});
 
-	getStoredRules(storage => {
+	common.storage.getRules().then(storage => {
 		let anyMatch = false;
 
 		storage.rules.forEach(rule => {
