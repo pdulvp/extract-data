@@ -8,13 +8,13 @@
  @author: pdulvp@laposte.net
  */
 
-var browser = adaptBrowser();
+var browser = compat.adaptBrowser();
 var rules = [];
 
 function updateRules(response) {
 	rules = response.rules;
 	var left = document.getElementById("left");
-	var activeIds = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
+	var activeIds = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
 	while (left.firstChild) {
 		left.removeChild(left.lastChild);
 	}
@@ -23,10 +23,10 @@ function updateRules(response) {
 		item.setAttribute("rule-id", rule.id);
 		left.appendChild(item);
 	});
-	Array.from(left.childNodes).filter(x => activeIds.includes(x.getAttribute("rule-id"))).forEach(x => addClass(x, "active"));
+	Array.from(left.childNodes).filter(x => activeIds.includes(x.getAttribute("rule-id"))).forEach(x => common.addClass(x, "active"));
 }
 
-registerEditor(document.getElementById("left"), editor => {
+common.registerEditor(document.getElementById("left"), editor => {
 	var lastActiveId = editor.getAttribute("rule-id");
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule != null) {
@@ -45,7 +45,7 @@ registerEditor(document.getElementById("left"), editor => {
 document.getElementById("left").addEventListener("keydown", event => {
 	if (event.code == "Delete") {
 		var left = document.getElementById("left");
-		var ruleIds = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
+		var ruleIds = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id"));
 		
 		if (ruleIds.length > 0) {
 			let nextId = findNextAfterDeletion(rules, ruleIds[ruleIds.length-1]);
@@ -58,8 +58,8 @@ document.getElementById("left").addEventListener("keydown", event => {
 });
 
 document.getElementById("left").addEventListener("click", event => {
-	if (hasClass(event.target, "left-pane-item")) {
-		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	if (common.hasClass(event.target, "left-pane-item")) {
+		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 		clickOnRule(lastActiveId, event.target.getAttribute("rule-id"));
 	}
 });
@@ -67,26 +67,26 @@ document.getElementById("left").addEventListener("click", event => {
 var table = document.getElementById("table-cache");
 table.addEventListener("click", event => {
 	let target = event.target;
-	if (hasClass(target, "table-column")) {
+	if (common.hasClass(target, "table-column")) {
 		target = target.parentNode;
 	}
-	if (hasClass(target, "table-column-wrapper-2")) {
+	if (common.hasClass(target, "table-column-wrapper-2")) {
 		target = target.parentNode;
 	}
-	if (hasClass(target, "table-column-wrapper")) {
+	if (common.hasClass(target, "table-column-wrapper")) {
 		target = target.parentNode;
 	}
-	if (hasClass(target, "table-column")) {
+	if (common.hasClass(target, "table-column")) {
 		target = target.parentNode;
 	}
-	if (hasClass(target, "table-row")) {
+	if (common.hasClass(target, "table-row")) {
 		clickOnItem(target.getAttribute("id"));
 	}
 });
 
-registerEditor(document.getElementById("table-cache"), editor => {
+common.registerEditor(document.getElementById("table-cache"), editor => {
 	var left = document.getElementById("left");
-	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
 		var lastItemId = editor.getAttribute("item-id");
@@ -100,7 +100,7 @@ registerEditor(document.getElementById("table-cache"), editor => {
 
 }, editor => {
 	var left = document.getElementById("left");
-	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
 		var lastItemId = editor.getAttribute("item-id");
@@ -128,9 +128,9 @@ document.getElementById("table-cache").addEventListener("keydown", event => {
 	if (event.code == "Delete") {
 		var left = document.getElementById("left");
 		var cache = document.getElementById("table-cache");
-		var itemIds = Array.from(cache.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("id"));
+		var itemIds = Array.from(cache.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("id"));
 		
-		var lastRuleId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastRuleId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 		let rule = rules.find(r => r.id == lastRuleId);
 		
 		if (itemIds.length > 0) {
@@ -151,7 +151,7 @@ document.getElementById("table-cache").addEventListener("keydown", event => {
 
 if (document.getElementById("field-sitematch")) {
 	document.getElementById("field-sitematch").oninput = function (event) {
-		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 		let rule = rules.find(r => r.id == lastActiveId);
 		if (rule) {
 			rule.sitematch = event.target.value;
@@ -161,8 +161,8 @@ if (document.getElementById("field-sitematch")) {
 
 function clickOnItem(itemId) {
 	var cache = document.getElementById("table-cache");
-	Array.from(cache.childNodes).forEach(x => removeClass(x, "active"));
-	Array.from(cache.childNodes).filter(x => x.getAttribute("id") == itemId).forEach(x => addClass(x, "active"));
+	Array.from(cache.childNodes).forEach(x => common.removeClass(x, "active"));
+	Array.from(cache.childNodes).filter(x => x.getAttribute("id") == itemId).forEach(x => common.addClass(x, "active"));
 }
 
 function clickOnRule(previousRuleId, ruleId) {
@@ -170,8 +170,8 @@ function clickOnRule(previousRuleId, ruleId) {
 		saveCurrentRule(previousRuleId);
 	}
 	
-	Array.from(left.childNodes).forEach(x => removeClass(x, "active"));
-	Array.from(left.childNodes).filter(x => x.getAttribute("rule-id") == ruleId).forEach(x => addClass(x, "active"));
+	Array.from(left.childNodes).forEach(x => common.removeClass(x, "active"));
+	Array.from(left.childNodes).filter(x => x.getAttribute("rule-id") == ruleId).forEach(x => common.addClass(x, "active"));
 
 	let rule = rules.filter(x => x.id == ruleId)[0];
 	if (rule != null && rule.sitematch != undefined) {
@@ -181,7 +181,7 @@ function clickOnRule(previousRuleId, ruleId) {
 	}
 
 	var table = document.getElementById("table-cache");
-	if (!hasClass(table, "invisible")) {
+	if (!common.hasClass(table, "invisible")) {
 		while (table.childNodes.length > 1) {
 			table.removeChild(table.lastChild);
 		}
@@ -206,14 +206,14 @@ function setItemResult(itemResult) {
 	let value = Array.from(Array.from(Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column-wrapper").childNodes).find(e => e.getAttribute("class") == "table-column-wrapper-2").childNodes).find(e => e.getAttribute("class") == "table-column table-column-value");
 	if (icon) {
 		if (itemResult.valid) {
-			addClass(row, "valid");
-			removeClass(icon, "icon-warning");
-			addClass(icon, "icon-valid");
+			common.addClass(row, "valid");
+			common.removeClass(icon, "icon-warning");
+			common.addClass(icon, "icon-valid");
 			value.textContent = itemResult.value;
 		} else {
-			addClass(row, "warning");
-			removeClass(icon, "icon-valid");
-			addClass(icon, "icon-warning");
+			common.addClass(row, "warning");
+			common.removeClass(icon, "icon-valid");
+			common.addClass(icon, "icon-warning");
 			value.textContent = " ";
 		}
 	}
@@ -228,13 +228,13 @@ function saveCurrentRule(ruleId) {
 				rule.sitematch = document.getElementById("field-sitematch").value;
 			}
 			var table = document.getElementById("table-editor");
-			if (!hasClass(table, "invisible")) {
+			if (!common.hasClass(table, "invisible")) {
 				let items = [];
 				try {
 					let obj = JSON.parse(table.lastChild.firstChild.value);
 					if (Array.isArray(obj)) {
 						obj.forEach(i => {
-							let item = { id : uuidv4(), name: i.name, xpath: i.xpath};
+							let item = { id : common.uuidv4(), name: i.name, xpath: i.xpath};
 							if (!(typeof item.name === 'string' || item.name instanceof String)) {
 								let itemName = browser.i18n.getMessage("new_item_name", ""+(items.length+1));
 								item.name = itemName;
@@ -257,7 +257,7 @@ function saveCurrentRule(ruleId) {
 
 function createRuleEntry(label) {
     var node = document.createElement("input");
-	addClass(node, "left-pane-item");
+	common.addClass(node, "left-pane-item");
 	node.value = label;
 	node.setAttribute("readonly", "readonly");
 	return node;
@@ -266,20 +266,20 @@ function createRuleEntry(label) {
 function createCacheEntry(item) {
 	let node = document.createElement("div");
 	node.setAttribute("id", item.id);
-	addClass(node, "table-row");
+	common.addClass(node, "table-row");
 
 	let child = null;
 	child = document.createElement("div");
-	addClass(child, "table-column table-column-icon");
+	common.addClass(child, "table-column table-column-icon");
 	child.textContent = item.icon;
 	node.appendChild(child);
 
 	let childWrapper = document.createElement("div");
-	addClass(childWrapper, "table-column-wrapper");
+	common.addClass(childWrapper, "table-column-wrapper");
 	node.appendChild(childWrapper);
 
 	child = document.createElement("input");
-	addClass(child, "table-column table-column-name");
+	common.addClass(child, "table-column table-column-name");
 	child.setAttribute("item-id", item.id);
 	child.setAttribute("item-data", "name");
 	child.value = item.name;
@@ -287,12 +287,12 @@ function createCacheEntry(item) {
 	childWrapper.appendChild(child);
 
 	let childWrapper2 = document.createElement("div");
-	addClass(childWrapper2, "table-column-wrapper-2");
+	common.addClass(childWrapper2, "table-column-wrapper-2");
 	childWrapper.appendChild(childWrapper2);
 
 	child = document.createElement("input");
 	child.setAttribute("type", "text");
-	addClass(child, "table-column table-column-xpath");
+	common.addClass(child, "table-column table-column-xpath");
 	child.setAttribute("item-id", item.id);
 	child.setAttribute("item-data", "xpath");
 	child.value = item.xpath;
@@ -300,7 +300,7 @@ function createCacheEntry(item) {
 	childWrapper2.appendChild(child);
 
 	child = document.createElement("div");
-	addClass(child, "table-column table-column-value");
+	common.addClass(child, "table-column table-column-value");
 	child.textContent = "";
 	childWrapper2.appendChild(child);
 
@@ -309,11 +309,11 @@ function createCacheEntry(item) {
 
 function createCacheEditor(items) {
 	let node = document.createElement("div");
-	addClass(node, "table-row table-editor-row");
+	common.addClass(node, "table-row table-editor-row");
 
 	let child = null;
 	child = document.createElement("textarea");
-	addClass(child, "table-column table-column-editor");
+	common.addClass(child, "table-column table-column-editor");
 
 	let content = [];
 	items.forEach(i => {
@@ -328,19 +328,19 @@ function createCacheEditor(items) {
 	return node;
 }
 
-registerDropdownMenu(document.getElementById("button-inspect"), document.getElementsByClassName("popup-menu")[0], (menu) => {
+common.registerDropdownMenu(document.getElementById("button-inspect"), document.getElementsByClassName("popup-menu")[0], (menu) => {
 	return new Promise((resolve, reject) => {
 		while (menu.firstChild) {
 			menu.removeChild(menu.lastChild);
 		}
-		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 		let rule = rules.find(r => r.id == lastActiveId);
 		if (rule) {
 			browser.tabs.query({}, (tabs) => {
-				tabs = tabs.filter(t => doesMatch(t.url, rule.sitematch));
+				tabs = tabs.filter(t => common.doesMatch(t.url, rule.sitematch));
 				if (tabs.length == 0) {
 					let child = document.createElement("div");
-					addClass(child, "menuitem-iconic");
+					common.addClass(child, "menuitem-iconic");
 					child.setAttribute("enabled", "false");
 					
 					child.textContent = browser.i18n.getMessage("options_opened_tab");
@@ -348,7 +348,7 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 				} else {
 					tabs.forEach(t => {
 						let child = document.createElement("div");
-						addClass(child, "menuitem-iconic");
+						common.addClass(child, "menuitem-iconic");
 						child.setAttribute("tab-id", t.id);
 						child.textContent = t.title;
 						menu.appendChild(child);
@@ -365,7 +365,7 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 	browser.tabs.query({}, (tabs) => {
 		console.log(tabs);
 		let tab = tabs.filter(x => x.id == tabId).find(x => true);
-		var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 
 		browser.tabs.update(tab.id, { active: true}).then(result => {
 			var sending = browser.tabs.sendMessage(tab.id, { "action": "highlight", rule: rules.find(r => r.id == lastActiveId) } );
@@ -384,7 +384,7 @@ registerDropdownMenu(document.getElementById("button-inspect"), document.getElem
 });
 
 
-//registerDropdownMenu(document.getElementById("button-variables"), document.getElementsByClassName("popup-menu")[0], clickPopupItem);
+//common.registerDropdownMenu(document.getElementById("button-variables"), document.getElementsByClassName("popup-menu")[0], clickPopupItem);
 
 function clickPopupItem(event) {
 	console.log(event);
@@ -400,7 +400,7 @@ document.getElementById("button-open").onclick = function (event) {
 };
 
  document.getElementById("button-ok").onclick = function (event) {
-	var lastRuleId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastRuleId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	if (lastRuleId != null) {
 		saveCurrentRule(lastRuleId);
 	}
@@ -425,31 +425,31 @@ document.getElementById("button-open").onclick = function (event) {
  document.getElementById("button-new-rule").onclick = function (event) {
 	console.log(rules);
 	let ruleName = browser.i18n.getMessage("new_rule_name", ""+(rules.length+1));
-	rules.push({ id: uuidv4(), name: ruleName, sitematch: "", items: [] });
+	rules.push({ id: common.uuidv4(), name: ruleName, sitematch: "", items: [] });
 	updateRules( { rules: rules } );
  };
 
  document.getElementById("button-advanced").onclick = function (event) {
-	var lastRuleId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastRuleId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	if (lastRuleId != null) {
 		saveCurrentRule(lastRuleId);
 	}
-	if (!hasClass(document.getElementById("table-cache"), "invisible")) {
-		addClass(document.getElementById("table-cache"), "invisible");
-		removeClass(document.getElementById("table-editor"), "invisible");
+	if (!common.hasClass(document.getElementById("table-cache"), "invisible")) {
+		common.addClass(document.getElementById("table-cache"), "invisible");
+		common.removeClass(document.getElementById("table-editor"), "invisible");
 	} else {
-		removeClass(document.getElementById("table-cache"), "invisible");
-		addClass(document.getElementById("table-editor"), "invisible");
+		common.removeClass(document.getElementById("table-cache"), "invisible");
+		common.addClass(document.getElementById("table-editor"), "invisible");
 	}
 	clickOnRule(null, lastRuleId);
  };
 
  document.getElementById("button-new-item").onclick = function (event) {
-	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
 		let itemName = browser.i18n.getMessage("new_item_name", ""+(rule.items.length+1));
-		rule.items.push({ id: uuidv4(), name: itemName, xpath: "" });
+		rule.items.push({ id: common.uuidv4(), name: itemName, xpath: "" });
 	}
 	updateRules( { rules: rules } );
 	clickOnRule(lastActiveId, lastActiveId);
@@ -471,7 +471,7 @@ function restoreWindow() {
 
 function restoreOptions(idIndex, itemId) {
 	let ruleIdIndex = idIndex;
-	var lastActiveId = Array.from(left.childNodes).filter(x => hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 	if (lastActiveId != null) {
 		ruleIdIndex = idIndex;
 	}
@@ -510,7 +510,7 @@ document.getElementById("button-cancel").textContent = browser.i18n.getMessage("
 document.getElementById("button-ok").textContent = browser.i18n.getMessage("button_ok");
 document.getElementById("table-column-value").textContent = browser.i18n.getMessage("table_column_value");
 document.getElementById("table-column-name").textContent = browser.i18n.getMessage("table_column_name");
-document.getElementById("table-column-xpath").textContent = browser.i18n.getMessage("table_column_xpath");
+document.getElementById("table-column-xpath-text").textContent = browser.i18n.getMessage("table_column_xpath");
 
 
 document.addEventListener('DOMContentLoaded', restoreWindow);

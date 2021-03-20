@@ -8,7 +8,8 @@
  @author: pdulvp@laposte.net
  */
 var results = [];
-var browser = adaptBrowser();
+var browser = compat.adaptBrowser();
+let menus = {};
 
 function equals(result1, result2) {
 	if (result1 == undefined) {
@@ -172,11 +173,11 @@ function createNewRule(event, tabId) {
 	getStoredRules(storage => {
 		let ruleName = browser.i18n.getMessage("new_rule_name", ""+(storage.rules.length+1));
 
-		let storedRule = { id: uuidv4(), name: ruleName, sitematch: encodeRegex(event.pageUrl), items: [] };
+		let storedRule = { id: common.uuidv4(), name: ruleName, sitematch: encodeRegex(event.pageUrl), items: [] };
 		storage.rules.push(storedRule);
 
 		let itemName = browser.i18n.getMessage("new_item_name", ""+(storedRule.items.length+1));
-		let item = { id: uuidv4(), name: itemName, xpath: "" };
+		let item = { id: common.uuidv4(), name: itemName, xpath: "" };
 		storedRule.items.push(item);
 		
 		var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
@@ -207,7 +208,7 @@ function createNewItem(event, rule, tabId) {
 		let storedRule = storage.rules.find(r => r.id == rule.id);
 		if (storedRule != null) {
 			let itemName = "Item #"+(storedRule.items.length+1);
-			let item = { id: uuidv4(), name: itemName, xpath: "" };
+			let item = { id: common.uuidv4(), name: itemName, xpath: "" };
 			storedRule.items.push(item);
 
 			var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
@@ -245,7 +246,7 @@ function highlightRule(event, rule, tabId) {
 }
 
 function editRule(ruleId, itemId) {
-	openOptions(ruleId, itemId);
+	common.openOptions(ruleId, itemId);
 }
 
 function editItem(event, rule, item, tabId) {
@@ -281,7 +282,6 @@ function storeRules(storage) {
 	return browser.storage.local.set(storage);
 }
 
-let menus = {};
 function getOrCreateMenu(data) {
 	if (menus[data.id] == undefined) {
 		browser.contextMenus.create(data);
@@ -395,7 +395,7 @@ function updateContextMenu(tab) {
 		let anyMatch = false;
 
 		storage.rules.forEach(rule => {
-			let match = doesMatch(tab.url, rule.sitematch);
+			let match = common.doesMatch(tab.url, rule.sitematch);
 			if (match) {
 				anyMatch = true;
 			}

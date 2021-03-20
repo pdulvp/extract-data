@@ -8,8 +8,7 @@
  @author: pdulvp@laposte.net
  */
 
-
-var browser = adaptBrowser();
+var browser = compat.adaptBrowser();
 let clickedElement;
 
  let clickListener = function(event) {
@@ -70,7 +69,7 @@ function handleMessage(request, sender, sendResponse) {
 }
 
 function getRulesResult(storage) {
-	let results = storage.rules.filter(r => doesMatch(document.URL, r.sitematch)).map(r => {
+	let results = storage.rules.filter(r => common.doesMatch(document.URL, r.sitematch)).map(r => {
 		let items = r.items.map(i => {
 			
 			let elements = getElementsByExpression(i.xpath);
