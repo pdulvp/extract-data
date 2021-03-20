@@ -125,14 +125,17 @@ You can use CSS Selectors rather than a complicated XPath expression.
 
 You can also use one of the predefined expressions below.
 
-- `document.location`
-- `document.location.href`
-- `document.location.protocol`
-- `document.location.host`
-- `document.location.hostname`
-- `document.location.port`
-- `document.location.pathname`
-- `document.location.origin`
+- `document.location` : https://developer.mozilla.org:8080/en-US/search?q=URL&r=10#search-results-close-container
+- `document.location.protocol` : https:
+- `document.location.host` : developer.mozilla.org:8080
+- `document.location.hostname` : developer.mozilla.org
+- `document.location.port` : 8080
+- `document.location.pathname` : /en-US/search
+- `document.location.pathname.<number>` : 0: en-US, 1: search
+- `document.location.origin` : https://developer.mozilla.org:8080
+- `document.location.search` : ?q=URL&r=10
+- `document.location.search.<variable>` : q: URL, r: 10
+- `document.location.hash` : #search-results-close-container
 
 ### Validation indicators
 
