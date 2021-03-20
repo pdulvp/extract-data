@@ -8,7 +8,21 @@
  @author: pdulvp@laposte.net
  */
 
-var browser = (typeof module === "object") ? {} : browser;
+var nodeBrowser = {
+    runtime : {
+        getManifest: function() {
+            return { version : require('../package.json').version }
+        }
+    },
+    storage : {
+        local: {
+            get: function(){},
+            set: function(e){ return Promise.resolve(e)},
+        }
+    }
+};
+
+var browser = (typeof module === "object") ? nodeBrowser : browser;
 var compat = {
 
     adaptBrowser: () => {
