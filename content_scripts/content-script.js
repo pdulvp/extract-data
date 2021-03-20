@@ -145,7 +145,7 @@ function getElementsByExpression(path) {
 		return result;
 	}
 	if (result == null || result.length == 0) {
-		result = getElementsByPredefinedExpressions(path);
+		result = getElementsByPredefinedExpression(path);
 	}
 	if (result == null || result.length == 0) {
 		result = getElementsByXpath(path);
@@ -156,22 +156,43 @@ function getElementsByExpression(path) {
 	return result;
 }
 
-function getElementsByPredefinedExpressions(path) {
+function getElementsByPredefinedExpression(path) {
 	let object = {
 		document: () => { return {
 			location: () => { return {
-					href: () => { return document.location.href },
-					protocol: () => { return document.location.protocol },
-					host: () => { return document.location.host },
-					hostname: () => { return document.location.hostname },
-					port: () => { return document.location.port },
-					pathname: () => { return document.location.pathname },
-					origin: () => { return document.location.origin },
-					toString: () => { return document.location.toString() }
+				href: () => { return document.location.href },
+				protocol: () => { return document.location.protocol },
+				host: () => { return document.location.host },
+				hostname: () => { return document.location.hostname },
+				hash: () => { return document.location.hash },
+				port: () => { return document.location.port },
+				pathname: () => { 
+					let result = {
+						toString: () => { return document.location.pathname }
+					};
+					let i = 0;
+					document.location.pathname.substring(1).split("/").forEach(x => {
+						result[""+i]=() => { return x; };
+						i++;
+					});
+					return result;
+				},
+				search: () => {
+					let result = {
+						toString: () => { return document.location.search }
+					};
+					let params = new URLSearchParams(document.location.search.substring(1));
+					for (const [key, value] of params) {
+						result[key]=() => { return value; };
+					}
+					return result;
+				},
+				origin: () => { return document.location.origin },
+				toString: () => { return document.location.toString() }
 			} }
 		} }
 	};
-
+	console.log(object);
 	try {
 		let root = object;
 		let evaluation = path.split(".");
