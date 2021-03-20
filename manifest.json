@@ -92,7 +92,7 @@
   "background": {
     "scripts": [
       "ui/compat.js",
-      "ui/ui-helper.js",
+      "ui/common.js",
       "background.js"
     ]
   },
@@ -103,7 +103,7 @@
       ],
       "js": [
         "ui/compat.js",
-        "ui/ui-helper.js",
+        "ui/common.js",
         "content_scripts/content-script.js"
       ]
     }
