@@ -284,7 +284,7 @@ document.getElementById("menu-editrules").textContent = browser.i18n.getMessage(
 
 if ( document.getElementById("menu-configure") != null) {
 	document.getElementById("menu-configure").onclick = function (event) {
-		browser.runtime.common.openOptionsPage();
+		browser.runtime.openOptionsPage();
 	};
 }
  

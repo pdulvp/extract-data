@@ -82,6 +82,7 @@ function getRulesResult(storage) {
 					} else if (typeof e === 'object') {
 						if (!(e.tagName) && e.ownerElement != null && e.ownerElement.hasAttribute(e.nodeName)) {
 							return e.ownerElement[e.nodeName];
+							
 						} else if (e.tagName) {
 							if (e.tagName.toLowerCase() == "input") {
 								return e.value;
@@ -91,6 +92,7 @@ function getRulesResult(storage) {
 								return e.textContent;
 							}
 						}
+
 					} else if (typeof e === 'string') {
 						return e;
 					}
@@ -232,7 +234,7 @@ function getElementsByXpath(path) {
 	try {
 		let evaluation = document.evaluate(path, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 		let result = [];
-		for(var i = 0; i < evaluation.snapshotLength; i++) {
+		for (var i = 0; i < evaluation.snapshotLength; i++) {
 			var node = evaluation.snapshotItem(i);
 			result.push(node);
 		}
