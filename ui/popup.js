@@ -230,12 +230,13 @@ function createPanel(content, id) {
 	}
 	child.appendChild(child3);
 
-	child.onclick = function(event) {
-		let ruleId = event.target.getAttribute("rule-id");
+	let proceed = function(event) {
+		console.log(event);
 		let type = "text";
+		let root = event.target.closest(".panel-tooltip"); 
+		let ruleId = root.getAttribute("rule-id");
 		if (event.target.hasAttribute("type")) {
 			type = event.target.getAttribute("type");
-			ruleId = event.target.parentNode.parentNode.getAttribute("rule-id");
 		}
 
 		if (ruleId != undefined) {
@@ -243,22 +244,34 @@ function createPanel(content, id) {
 				common.openOptions(ruleId);
 				return;
 			}
-	
 			let content = getRuleContent(ruleId, type);
-			common.copyToClipboard(content);
-			browser.notifications.create(common.uuidv4(), {
-				"type": "basic",
-				"iconUrl" : browser.extension.getURL("icons/icon.svg"),
-				"title": browser.i18n.getMessage("notification_copied_title"),
-				"message": browser.i18n.getMessage("notification_copied_description"),
-			}).then(e => {
-				window.close();
-				  setTimeout(ee => {
-					browser.notifications.clear(e);
-				  }, 2000);
-			});
+
+			if (event.button == 1 && type == "json") {
+				const blob = new Blob([content], {type: 'application/json;charset=utf-8'});
+				const url = URL.createObjectURL(blob);
+				var creating = browser.tabs.create(
+					{url: url}
+				);
+
+			} else {
+				common.copyToClipboard(content);
+				browser.notifications.create(common.uuidv4(), {
+					"type": "basic",
+					"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+					"title": browser.i18n.getMessage("notification_copied_title"),
+					"message": browser.i18n.getMessage("notification_copied_description"),
+				}).then(e => {
+					window.close();
+					  setTimeout(ee => {
+						browser.notifications.clear(e);
+					  }, 2000);
+				});
+			}
 		}
-	}
+	};
+
+	child.onclick = proceed;
+	child.onauxclick = proceed;
 	return child;
 }
 
