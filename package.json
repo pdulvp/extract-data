@@ -7,7 +7,8 @@
   },
   "scripts": {
     "bump": "node releng/bump.js",
-    "make": "powershell -NoProfile -ExecutionPolicy Unrestricted -Command releng/make.ps1",
+    "make": "node releng/set-release.js; powershell -NoProfile -ExecutionPolicy Unrestricted -Command releng/make.ps1 release-unsigned; node releng/set-debug.js;",
+    "debug": "node releng/set-debug.js; powershell -NoProfile -ExecutionPolicy Unrestricted -Command releng/make.ps1 debug",
     "test": "powershell -NoProfile -ExecutionPolicy Unrestricted -Command releng/tests.ps1"
   },
   "repository": {

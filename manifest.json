@@ -107,5 +107,10 @@
         "content_scripts/content-script.js"
       ]
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "extract-data@pdulvp"
+    }
+  }
 }
