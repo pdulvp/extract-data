@@ -12,7 +12,7 @@ var common = (typeof module === "object") ? require("../ui/common") : common;
 var browser = compat.adaptBrowser();
 let clickedElement;
 
- let clickListener = function(event) {
+ let rightClickEventListener = function(event) {
     if (event.button == 2) { //right click
 		clickedElement = event.target;
 		const sending = browser.runtime.sendMessage({ "action": "setClickedElement" });
@@ -27,10 +27,10 @@ var mutationObserver = new MutationObserver(function(mutations) {
 	if (currentObserver != null) {
 		clearTimeout(currentObserver);
 	}
-	currentObserver = setTimeout(restoreOptions, 200);
+	currentObserver = setTimeout(reloadResults, 200);
 });
 
-function restoreOptions() {
+function reloadResults() {
 	currentObserver = null;
 	let resend = function(result) {
 		const sending = browser.runtime.sendMessage({ "action": "setResult", "result": result});
@@ -46,18 +46,18 @@ function restoreOptions() {
 				characterData: true
 			});
 
-			resend(getRulesResult( { rules: res.rules} ));
+			resend(evaluateResults( { rules: res.rules } ));
 		} else {
-			resend(getRulesResult( { rules: []} ));
+			resend(evaluateResults( { rules: [] } ));
 		}
 	}, (error) => {
-		resend(getRulesResult( { rules: []} ));
+		resend(evaluateResults( { rules: [] } ));
 	});
 }
 
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "highlight") {
-		let result = getRulesResult( { rules: [ request.rule ] } )
+		let result = evaluateResults( { rules: [ request.rule ] } )
 		highlightResult(result);
 		sendResponse( result );
 
@@ -69,7 +69,7 @@ function handleMessage(request, sender, sendResponse) {
 	}
 }
 
-function getRulesResult(storage) {
+function evaluateResults(storage) {
 	let results = storage.rules.filter(r => common.doesMatch(document.URL, r.sitematch)).map(r => {
 		let items = r.items.map(i => {
 			
@@ -267,7 +267,7 @@ function getXPathForElement(el, xml) {
 }
 
 
-common.storage.addRulesChangedListener(restoreOptions);
-document.addEventListener("mousedown", clickListener, true);
+common.storage.addRulesChangedListener(reloadResults);
+document.addEventListener("mousedown", rightClickEventListener, true);
 
-restoreOptions();
+reloadResults();
