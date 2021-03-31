@@ -57,15 +57,19 @@ common.registerEditor(document.getElementById("left"), editor => {
 
 document.getElementById("left").addEventListener("keydown", event => {
 	if (event.code == "Delete") {
-		var left = document.getElementById("left");
 		var ruleIds = optionsUi.activeRules();
 		
 		if (ruleIds.length > 0) {
 			let nextId = findNextAfterDeletion(rules, ruleIds[ruleIds.length-1]);
 			rules = rules.filter(x => !ruleIds.includes(x.id));
+
+			if (rules.length == 0) {
+				let ruleName = browser.i18n.getMessage("new_rule_name", ""+(rules.length+1));
+				rules.push({ id: common.uuidv4(), name: ruleName, sitematch: "", items: [] });
+				nextId = rules[rules.length-1].id;
+			}
 			updateRules({rules: rules});
 			clickOnRule(null, nextId);
-			left.focus();
 		}
 	}
 });
@@ -155,7 +159,6 @@ document.getElementById("table-cache").addEventListener("keydown", event => {
 			clickOnItem(nextId);
 			cache.focus();
 		}
-
 	}
 });
 
@@ -184,7 +187,10 @@ function clickOnRule(previousRuleId, ruleId) {
 	}
 	
 	Array.from(left.childNodes).forEach(x => common.removeClass(x, "active"));
-	Array.from(left.childNodes).filter(x => x.getAttribute("rule-id") == ruleId).forEach(x => common.addClass(x, "active"));
+	Array.from(left.childNodes).filter(x => x.getAttribute("rule-id") == ruleId).forEach(x => {
+		common.addClass(x, "active");
+		x.focus();	
+	});
 
 	let rule = rules.filter(x => x.id == ruleId)[0];
 	if (rule != null && rule.sitematch != undefined) {
@@ -205,7 +211,7 @@ function clickOnRule(previousRuleId, ruleId) {
 		}
 	} else {
 		var table = document.getElementById("table-editor");
-		while (table.childNodes.length > 2) {
+		while (table.childNodes.length > 1) {
 			table.removeChild(table.lastChild);
 		}
 		table.appendChild(createCacheEditor(rule.items));
@@ -216,7 +222,7 @@ function setItemResult(itemResult) {
 	var table = document.getElementById("table-cache");
 	var row = Array.from(table.childNodes).find(e => e.id == itemResult.id);
 	let icon = Array.from(row.childNodes).find(e => e.getAttribute("class").indexOf("icon") > -1);
-	let value = Array.from(Array.from(Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column-wrapper").childNodes).find(e => e.getAttribute("class") == "table-column-wrapper-2").childNodes).find(e => e.getAttribute("class") == "table-column table-column-value");
+	let value = Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column table-column-value");
 	if (icon) {
 		if (itemResult.valid) {
 			common.addClass(row, "valid");
@@ -288,21 +294,13 @@ function createCacheEntry(item) {
 	child.textContent = item.icon;
 	node.appendChild(child);
 
-	let childWrapper = document.createElement("div");
-	common.addClass(childWrapper, "table-column-wrapper");
-	node.appendChild(childWrapper);
-
 	child = document.createElement("input");
 	common.addClass(child, "table-column table-column-name");
 	child.setAttribute("item-id", item.id);
 	child.setAttribute("item-data", "name");
 	child.value = item.name;
 	child.setAttribute("readonly", "readonly");
-	childWrapper.appendChild(child);
-
-	let childWrapper2 = document.createElement("div");
-	common.addClass(childWrapper2, "table-column-wrapper-2");
-	childWrapper.appendChild(childWrapper2);
+	node.appendChild(child);
 
 	child = document.createElement("input");
 	child.setAttribute("type", "text");
@@ -311,12 +309,12 @@ function createCacheEntry(item) {
 	child.setAttribute("item-data", "expression");
 	child.value = item.expression;
 	child.setAttribute("readonly", "readonly");
-	childWrapper2.appendChild(child);
+	node.appendChild(child);
 
 	child = document.createElement("div");
 	common.addClass(child, "table-column table-column-value");
 	child.textContent = "";
-	childWrapper2.appendChild(child);
+	node.appendChild(child);
 
 	return node;
 }
@@ -469,6 +467,10 @@ document.getElementById("button-open").onclick = function (event) {
 	clickOnRule(lastActiveId, lastActiveId);
  };
  
+ document.getElementById("left").addEventListener('wheel', function (event) {
+	document.getElementById("left").scrollLeft += (event.deltaY * 30);
+ });
+
 function restoreWindow() {
 	var urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('initialRule')) {

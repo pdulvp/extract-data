@@ -10,6 +10,7 @@
 
 :root {
   --row-hover: rgba(100, 0, 255, 0.02);
+  --row-left-active: rgba(255, 255, 255, 0.8);
   --row-active: rgba(100, 0, 255, 0.2);
   --row-active-color: rgba(0, 0, 0);
   --popup-width: 300px;
@@ -25,6 +26,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --row-left-active: rgba(100, 0, 255, 0.5);
     --row-hover: rgba(100, 0, 255, 0.2);
     --row-active: rgba(100, 0, 255, 0.5);
     --row-active-color: rgba(230, 230, 230);
@@ -224,7 +226,7 @@ textarea {
 }
 @media(min-width: 750px) {
   .dialog-zone {
-    flex-direction: row;    -webkit-flex-direction: row;
+    flex-direction: column;    -webkit-flex-direction: column;
   }
 }
 .dialog-zone {
@@ -232,13 +234,11 @@ textarea {
   height: 100%;
   margin: 10px;
   display: flex;          display: -webkit-flex;
-  flex-wrap: wrap;     -webkit-flex-wrap: wrap;
   justify-content: space-around;
   align-items: stretch;
 }
 
 .resizeable-hpane {
-  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .button-bar {
@@ -300,50 +300,70 @@ textarea {
 .right-pane .block input {
   /*min-width: 300px;*/
   flex-grow: 1;
-  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .right-pane {
   padding: 10px;
   /*width: calc(1200px - 200px - 40px);*/
   background-color: var(--inner-box-color);
-  flex-grow: 6;
+  border-left: 1px solid rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  flex-grow: 1;
 
   display: flex;          display: -webkit-flex;
   flex-direction: column;    -webkit-flex-direction: column;
   flex-wrap: wrap;     -webkit-flex-wrap: wrap;
 }
 
+.left-pane::-webkit-scrollbar {
+  display: none;  /* Chrome Safari */
+}
+
 .left-pane {
-  margin-right: 6px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  flex-wrap: no-wrap;
+  display: flex;
   flex-grow: 0;
-  background-color: var(--inner-box-color);
+  flex-direction: row;
+  overflow-x:auto;
+  background-color: var(--dialog-background);
 }
 @media(min-width: 750px) {
   .left-pane {
-    width: 200px;
   }
 }
 @media(max-width: 750px) {
   .left-pane {
-    height: 140px;
-    margin-right: 0px;
-    margin-bottom: 6px;
     overflow-y: scroll;
-  }
-  .right-pane {
-    flex-grow: 6;
   }
 }
 .left-pane input {
-  border: 0px;
   width: -moz-available;
   width: -webkit-fill-available;  
 }
 
+.left-pane-item:first-child {
+  border-left: 1px solid rgba(0, 0, 0, 0.2);
+}
+.left-pane-item:last-child {
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
 .left-pane-item {
+  border-left: 1px solid var(--inner-item);
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 0px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  min-width: 100px;
+  max-width: 150px;
+  flex-basis: 150px;
+  flex-shrink: 1;
   cursor: default;
-  display: block;
+  flex-grow: 0;
   padding: 6px;
   background-color: var(--inner-item);
 }
@@ -362,10 +382,11 @@ input[readonly]:hover {
 }
 
 .left-pane-item.active {
-  background-color: var(--row-active);
+  background-color: var(--row-left-active);
+  flex-shrink: 0;
 }
 .left-pane-item.active:hover {
-  background-color: var(--row-active);
+  background-color: var(--row-left-active);
 }
 .left-pane-item:hover {
   background-color: var(--row-hover);
@@ -377,6 +398,12 @@ input[readonly]:hover {
   background-color: var(--popup-background);
   border: 1px solid rgba(0, 0, 0, 0.2);
   width: var(--popup-width);
+}
+
+.cache-section {
+  display: flex;          display: -webkit-flex;
+  flex-direction: row;    -webkit-flex-direction: row;
+  flex-grow: 1;
 }
 
 .table-cache {
