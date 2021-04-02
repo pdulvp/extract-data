@@ -39,6 +39,11 @@ function updateRules(response) {
 	Array.from(left.childNodes).filter(x => activeIds.includes(x.getAttribute("rule-id"))).forEach(x => common.addClass(x, "active"));
 }
 
+function createNewRule() {
+	let ruleName = browser.i18n.getMessage("new_rule_name", ""+(rules.length+1));
+	return { id: common.uuidv4(), name: ruleName, sitematch: "", items: [] };
+}
+
 common.registerEditor(document.getElementById("left"), editor => {
 	var lastActiveId = editor.getAttribute("rule-id");
 	let rule = rules.find(r => r.id == lastActiveId);
@@ -64,8 +69,7 @@ document.getElementById("left").addEventListener("keydown", event => {
 			rules = rules.filter(x => !ruleIds.includes(x.id));
 
 			if (rules.length == 0) {
-				let ruleName = browser.i18n.getMessage("new_rule_name", ""+(rules.length+1));
-				rules.push({ id: common.uuidv4(), name: ruleName, sitematch: "", items: [] });
+				rules.push(createNewRule());
 				nextId = rules[rules.length-1].id;
 			}
 			updateRules({rules: rules});
@@ -436,8 +440,7 @@ document.getElementById("button-open").onclick = function (event) {
 
  document.getElementById("button-new-rule").onclick = function (event) {
 	console.log(rules);
-	let ruleName = browser.i18n.getMessage("new_rule_name", ""+(rules.length+1));
-	rules.push({ id: common.uuidv4(), name: ruleName, sitematch: "", items: [] });
+	rules.push(createNewRule());
 	updateRules( { rules: rules } );
  };
 
@@ -494,6 +497,9 @@ function restoreOptions(idIndex, itemId) {
 	
 	common.storage.getRules().then((res) => {
 		if (res.rules && Array.isArray(res.rules)) {
+			if (res.rules.length == 0) {
+				res.rules.push(createNewRule());
+			}
 			updateRules( { rules: res.rules } );
 			let ruleId = ruleIdIndex;
 			if (Number.isInteger(ruleIdIndex) && ruleIdIndex < rules.length) {
@@ -505,10 +511,10 @@ function restoreOptions(idIndex, itemId) {
 				clickOnItem(itemId);
 			}
 		} else {
-			updateRules( { rules: [] } );
+			updateRules( { rules: [ createNewRule() ] } );
 		}
 	}, (error) => {
-		updateRules( { rules: [] } );
+		updateRules( { rules: [ createNewRule() ] } );
 	});
 }
 
