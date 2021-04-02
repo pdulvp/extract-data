@@ -407,7 +407,12 @@ input[readonly]:hover {
 }
 
 .table-cache {
-  flex-grow:1;
+  flex-grow: 0.6;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+.table-values {
+  flex-grow: 0.4;
+  margin-left: 5px;
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 

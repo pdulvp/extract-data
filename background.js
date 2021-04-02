@@ -83,7 +83,7 @@ function handleMessage(request, sender, sendResponse) {
 		}
 
 	} else if (request.action == "getResult") {
-		sendResponse({result: results[request.tabId]});
+		sendResponse( results[request.tabId] );
 
 	} else if (request.action == "setClickedElement") {
 		updateContextMenu(sender.tab);

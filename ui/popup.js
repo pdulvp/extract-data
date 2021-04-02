@@ -7,148 +7,160 @@
  SPDX-License-Identifier: CC-BY-NC-ND-4.0
  @author: pdulvp@laposte.net
  */
-var Rules = null;
-var Results = null;
-
 var browser = compat.adaptBrowser();
 
-function restoreOptions() {
-	common.storage.getRules().then((res) => {
-		if (res.rules && Array.isArray(res.rules)) {
-			updateRules( { rules: res.rules } );
-		} else {
-			updateRules( { rules: [] } );
-		}
-	}, (error) => {
-		updateRules( { rules: [] } );
+function reloadRules() {
+	common.storage.getRules().then(res => {
+		updateRules( { rules: res.rules } );
 	});
 }
 
 function updateRules(storage) {
-	this.Rules = storage.rules;
-
 	var table = document.getElementById("panel");
 	while (table.childNodes.length > 1) {
 		table.removeChild(table.firstChild);
 	}
 
 	let menu = document.getElementById("menu-editrules");
-	browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-
-		console.log(tabs);
-		let tabId = tabs[0].id;
-		let tabUrl = tabs[0].url;
+	getResultOfActiveTab().then(results => {
 		
-		var sending = browser.runtime.sendMessage( { "action": "getResult", "tabId": tabId } );
-		sending.then((ree) => {
-			Results = ree;
-
-			if (ree != null && ree.result != null) {
-				let matchingRules = ree.result.rulesResults.filter(r => {
-					let rule = findRule(r.id);
-					if (rule == null) {
-						return false;
-					}
-					if (!common.doesMatch(tabUrl, rule.sitematch)) {
-						return false;
-					}
-					return true;
-				});
-
-				if (matchingRules.length == 0) {
-					let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
-					let panel = createPanel(createTitle(noRuleMsg));
-					common.addClass(panel, "panel-tooltip-error");
-					document.getElementById("panel").insertBefore(panel, menu);
-					return;
-				}
-
-				let rulesRenders = matchingRules.map(r => {
-					let rule = findRule(r.id);
-					let items = r.itemsResults.filter(x => x.value != null);
-					if (items.length > 0) {
-						let contents = [ createTitle(rule.name, rule.id) ];
-						items.forEach(x => {
-							contents.push(createValue(x.value, rule.id));
-						})
-						return createPanel(createContent(contents, rule.id), rule.id);
-					} else {
-						let contents = [ createTitle(rule.name, rule.id), createValue(browser.i18n.getMessage("no_result"), rule.id) ];
-						return createPanel(createContent(contents, rule.id), rule.id);
-					}
-
-				}).filter(x => x != null);
-
-				if (rulesRenders.length == 0) {
-					let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
-					let panel = createPanel(createTitle(noRuleMsg));
-					common.addClass(panel, "panel-tooltip-error");
-					document.getElementById("panel").insertBefore(panel, menu);
-				} else {
-					rulesRenders.map(v => {
-						document.getElementById("panel").insertBefore(v, menu);
-					});
-				}
-				return;
-			}
-
+		if (results.rulesResults.length == 0) {
 			let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
 			let panel = createPanel(createTitle(noRuleMsg));
 			common.addClass(panel, "panel-tooltip-error");
 			document.getElementById("panel").insertBefore(panel, menu);
-			
-		}, e => {
-			let errorMsg = browser.i18n.getMessage("error_occured");
-			let panel = createPanel(createTitle(errorMsg));
+			return;
+		}
+	
+		let rulesRenders = results.rulesResults.map(r => {
+			let rule = results.rules.filter(x => x.id == r.id)[0];
+			let items = r.itemsResults.filter(x => x.value != null);
+			if (items.length > 0) {
+				let contents = [ createTitle(rule.name, rule.id) ];
+				items.forEach(x => {
+					contents.push(createValue(x.value, rule.id));
+				})
+				return createPanel(createContent(contents, rule.id), rule.id);
+			} else {
+				let contents = [ createTitle(rule.name, rule.id), createValue(browser.i18n.getMessage("no_result"), rule.id) ];
+				return createPanel(createContent(contents, rule.id), rule.id);
+			}
+	
+		}).filter(x => x != null);
+		
+		if (rulesRenders.length == 0) {
+			let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
+			let panel = createPanel(createTitle(noRuleMsg));
 			common.addClass(panel, "panel-tooltip-error");
 			document.getElementById("panel").insertBefore(panel, menu);
-			console.log(e);
-		});
 	
+		} else {
+			rulesRenders.map(v => {
+				document.getElementById("panel").insertBefore(v, menu);
+			});
+		}
+
+	}).catch(e => {
+		let noRuleMsg = browser.i18n.getMessage("no_rule_for_tab");
+		let panel = createPanel(createTitle(noRuleMsg));
+		common.addClass(panel, "panel-tooltip-error");
+		document.getElementById("panel").insertBefore(panel, menu);
 	});
 }
 
-function getRuleContent(ruleId, type) {
-	if (Results != null && ruleId != null) {
-		let rule = Results.result.rulesResults.find(r => r.id == ruleId);
-		if (rule != null) {
-	
-			if (type == "raw") {
-				let content = rule.itemsResults.map(x => {
-					return `${x.value}`;
-				}).join("\n");
-				return content;
-
-			} else if (type == "text") {
-				let content = rule.itemsResults.filter(x => x.value != null).map(x => {
-					return `${x.value}`;
-				}).join("\n");
-				return content;
-
-			} else if (type == "xls") {
-				let content = rule.itemsResults.map(x => {
-					let name = x.item.name;
-					if (name != null) {
-						name = name.replace(/\t/g, '');
-					}
-					let value = x.value;
-					if (value != null) {
-						value = value.toString().replace(/\t/g, '');
-					}
-					return `${name}\t${value}`;
-				}).join("\n");
-				return content;
-
-			} else if (type == "json") {
-				let content = { "rule": rule.rule.name, items: [] };
-				rule.itemsResults.forEach(x => {
-					content.items.push({ "name": x.item.name, "value": x.value.join(", "), "values": x.value }); 
-				});
-				return JSON.stringify(content, null, 2);
+function getResult(tabId) {
+	return new Promise((resolve, reject) => {
+		var sending = browser.runtime.sendMessage( { "action": "getResult", "tabId": tabId } );
+		sending.then((results) => {
+			if (results != null) {
+				resolve({ tabId: tabId, results: results} );
+			} else {
+				reject(null);
 			}
-		}
+		});
+	});
+}
+
+function getResultOfActiveTab() {
+	return new Promise((resolve, reject) => {
+		browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+			let tabId = tabs[0].id;
+			let tabUrl = tabs[0].url;
+			getResult(tabId).then(tabResult => {
+				tabResult.tabUrl = tabUrl;
+				resolve(tabResult);
+			}).catch(e => {
+				reject(e);
+			});
+		});
+
+	}).then(tabResults => {
+		return new Promise((resolve, reject) => {
+			common.storage.getRules().then(storage => {
+				tabResults.rules = storage.rules;
+				resolve(tabResults);
+			});
+		});
+
+	}).then(tabResults => {
+		let matchingRules = tabResults.results.rulesResults.filter(r => {
+			let rule = tabResults.rules.filter(x => x.id == r.id)[0];
+			if (rule == null) {
+				return false;
+			}
+			if (!common.doesMatch(tabResults.tabUrl, rule.sitematch)) {
+				return false;
+			}
+			return true;
+		});
+		return Promise.resolve({ rules: tabResults.rules, rulesResults : matchingRules });
+	})
+}
+
+function getRuleContent(ruleId, type) {
+	if (ruleId != null) {
+		getResultOfActiveTab().then((results) => {
+			console.log(results);
+			let ruleResult = results.rulesResults.find(r => r.id == ruleId);
+			if (ruleResult != null) {
+				if (type == "raw") {
+					let content = ruleResult.itemsResults.map(x => {
+						return `${x.value}`;
+					}).join("\n");
+						return content;
+		
+				} else if (type == "text") {
+					let content = ruleResult.itemsResults.filter(x => x.value != null).map(x => {
+						return `${x.value}`;
+					}).join("\n");
+					return content;
+		
+				} else if (type == "xls") {
+					let content = ruleResult.itemsResults.map(x => {
+						let name = x.item.name;
+						if (name != null) {
+							name = name.replace(/\t/g, '');
+						}
+						let value = x.value;
+						if (value != null) {
+							value = value.toString().replace(/\t/g, '');
+						}
+						return `${name}\t${value}`;
+					}).join("\n");
+					return content;
+		
+				} else if (type == "json") {
+					let content = { "rule": ruleResult.rule.name, items: [] };
+					rule.itemsResults.forEach(x => {
+						content.items.push({ "name": x.item.name, "value": x.value.join(", "), "values": x.value }); 
+					});
+					return JSON.stringify(content, null, 2);
+				}
+			}
+		});
 	}
 }
+
 
 function createTitle(title, ruleId) {
 	let child = document.createElement("div");
@@ -275,7 +287,7 @@ function createPanel(content, id) {
 	return child;
 }
 
-document.addEventListener('DOMContentLoaded', restoreOptions);
+document.addEventListener('DOMContentLoaded', reloadRules);
 
 document.getElementById("menu-editrules").onclick = function (event) {
 	common.openOptions();
@@ -290,20 +302,9 @@ if ( document.getElementById("menu-configure") != null) {
  
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "onResultChange") {
-		restoreOptions();
+		reloadRules();
 	}
-}
-
-function onStorageChange() {
-	restoreOptions();
 }
 
 browser.runtime.onMessage.addListener(handleMessage);
-common.storage.addRulesChangedListener(onStorageChange);
-
-function findRule(ruleId) {
-	if (Rules != null)  {
-		return Rules.filter(x => x.id == ruleId)[0];
-	}
-	return null;
-}
+common.storage.addRulesChangedListener(reloadRules);

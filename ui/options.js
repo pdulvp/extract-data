@@ -315,11 +315,6 @@ function createCacheEntry(item) {
 	child.setAttribute("readonly", "readonly");
 	node.appendChild(child);
 
-	child = document.createElement("div");
-	common.addClass(child, "table-column table-column-value");
-	child.textContent = "";
-	node.appendChild(child);
-
 	return node;
 }
 
@@ -530,8 +525,8 @@ document.getElementById("button-new-rule").textContent = browser.i18n.getMessage
 document.getElementById("button-new-item").textContent = browser.i18n.getMessage("button_new_item");
 document.getElementById("button-cancel").textContent = browser.i18n.getMessage("button_cancel");
 document.getElementById("button-ok").textContent = browser.i18n.getMessage("button_ok");
-document.getElementById("table-column-value").textContent = browser.i18n.getMessage("table_column_value");
 document.getElementById("table-column-name").textContent = browser.i18n.getMessage("table_column_name");
+document.getElementById("table-column-value").textContent = browser.i18n.getMessage("table_column_value");
 document.getElementById("table-column-expression-text").textContent = browser.i18n.getMessage("table_column_expression");
 
 
