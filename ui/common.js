@@ -14,6 +14,8 @@ var browser = compat.adaptBrowser();
 var common = {
 	
 	storage: {
+		listeners: [],
+
 		getRules: function() {
 			return new Promise(function(resolve, reject) {
 				browser.storage.local.get('version').then(versionStorage => {

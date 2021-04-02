@@ -15,7 +15,7 @@ let clickedElement;
  let rightClickEventListener = function(event) {
     if (event.button == 2) { //right click
 		clickedElement = event.target;
-		const sending = browser.runtime.sendMessage({ "action": "setClickedElement" });
+		const sending = browser.runtime.sendMessage({ action: "setClickedElement" });
 		sending.then(x => {}, x => {}); 
     }
 };
@@ -33,11 +33,11 @@ var mutationObserver = new MutationObserver(function(mutations) {
 function reloadResults() {
 	currentObserver = null;
 	let resend = function(result) {
-		const sending = browser.runtime.sendMessage({ "action": "setResult", "result": result});
+		const sending = browser.runtime.sendMessage({ action: "setResult", result: result});
 		sending.then(x => {}, x => {}); 
 	}
-	common.storage.getRules().then((res) => {
-		if (res.rules && Array.isArray(res.rules)) {
+	common.storage.getRules().then(storage => {
+		if (storage.rules && Array.isArray(storage.rules)) {
 			
 			mutationObserver.observe(document.documentElement, {
 				childList: true,
@@ -46,7 +46,7 @@ function reloadResults() {
 				characterData: true
 			});
 
-			resend(evaluateResults( { rules: res.rules } ));
+			resend(evaluateResults( { rules: storage.rules } ));
 		} else {
 			resend(evaluateResults( { rules: [] } ));
 		}

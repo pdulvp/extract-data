@@ -70,10 +70,35 @@ function equals(result1, result2) {
 	return true;
 }
 
+function getResultOfTab(tabId) {
+	return new Promise((resolve, reject) => {
+		common.storage.getRules().then(storage => {
+			results[tabId].rules = storage.rules;
+			resolve(results[tabId]);
+		});
+
+	}).then(tabResults => {
+		let matchingRules = tabResults.rulesResults.filter(r => {
+			let rule = tabResults.rules.filter(x => x.id == r.id)[0];
+			if (rule == null) {
+				return false;
+			}
+			if (!common.doesMatch(tabResults.tabUrl, rule.sitematch)) {
+				return false;
+			}
+			return true;
+		});
+		return Promise.resolve({ rulesResults : matchingRules });
+	})
+}
+
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setResult") {
 		if (!equals(results[sender.tab.id], request.result)) {
 			results[sender.tab.id] = request.result;
+			results[sender.tab.id].tabUrl = sender.tab.url;
+			results[sender.tab.id].tabId = sender.tab.id;
+
 			updateBadge(sender.tab.id, true);
 			updateContextMenu(sender.tab);
 			var sending = browser.runtime.sendMessage( { "action": "onResultChange", "tabId": sender.tab.id, "result": request.result } )
@@ -83,7 +108,13 @@ function handleMessage(request, sender, sendResponse) {
 		}
 
 	} else if (request.action == "getResult") {
-		sendResponse( results[request.tabId] );
+		console.log("getResult");
+		getResultOfTab(request.tabId).then(tabResult => {
+			console.log("getResult2");
+			console.log(tabResult);
+			sendResponse( tabResult );
+		});
+		return true; //necessary for sendResponse call
 
 	} else if (request.action == "setClickedElement") {
 		updateContextMenu(sender.tab);

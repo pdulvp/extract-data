@@ -490,12 +490,12 @@ function restoreOptions(idIndex, itemId) {
 		ruleIdIndex = idIndex;
 	}
 	
-	common.storage.getRules().then((res) => {
-		if (res.rules && Array.isArray(res.rules)) {
-			if (res.rules.length == 0) {
-				res.rules.push(createNewRule());
+	common.storage.getRules().then(storage => {
+		if (storage.rules && Array.isArray(storage.rules)) {
+			if (storage.rules.length == 0) {
+				storage.rules.push(createNewRule());
 			}
-			updateRules( { rules: res.rules } );
+			updateRules( { rules: storage.rules } );
 			let ruleId = ruleIdIndex;
 			if (Number.isInteger(ruleIdIndex) && ruleIdIndex < rules.length) {
 				ruleId = rules[ruleIdIndex].id;
