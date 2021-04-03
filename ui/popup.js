@@ -81,51 +81,12 @@ function getResultOfActiveTab() {
 	});
 }
 
-function toContent(ruleResult, type) {
-	if (ruleResult != null) {
-		if (type == "raw") {
-			let content = ruleResult.itemsResults.map(x => {
-				return `${x.value}`;
-			}).join("\n");
-				return content;
-
-		} else if (type == "text") {
-			let content = ruleResult.itemsResults.filter(x => x.value != null).map(x => {
-				return `${x.value}`;
-			}).join("\n");
-			return content;
-
-		} else if (type == "xls") {
-			let content = ruleResult.itemsResults.map(x => {
-				let name = x.item.name;
-				if (name != null) {
-					name = name.replace(/\t/g, '');
-				}
-				let value = x.value;
-				if (value != null) {
-					value = value.toString().replace(/\t/g, '');
-				}
-				return `${name}\t${value}`;
-			}).join("\n");
-			return content;
-
-		} else if (type == "json") {
-			let content = { "rule": ruleResult.rule.name, items: [] };
-			rule.itemsResults.forEach(x => {
-				content.items.push({ "name": x.item.name, "value": x.value.join(", "), "values": x.value }); 
-			});
-			return JSON.stringify(content, null, 2);
-		}
-	}
-	return null;
-}
-
 function getRuleContent(ruleId, type) {
 	if (ruleId != null) {
 		getResultOfActiveTab().then((results) => {
 			console.log(results);
 			let ruleResult = results.rulesResults.find(r => r.id == ruleId);
-			return toContent(ruleResult, type);
+			return common.results.toContent(ruleResult, type);
 		});
 	}
 }
@@ -186,21 +147,13 @@ function createPanel(content, id) {
 	common.addClass(child3, "panel-tooltip-toolbar");
 	
 	if (id != undefined) {
-		let button1 = document.createElement("div");
-		common.addClass(button1, "panel-icon");
-		button1.textContent = "JSON";
-		button1.setAttribute("type", "json");
-		child3.appendChild(button1);
-		let button2 = document.createElement("div");
-		common.addClass(button2, "panel-icon");
-		button2.textContent = "XLS";
-		button2.setAttribute("type", "xls");
-		child3.appendChild(button2);
-		let button3 = document.createElement("div");
-		common.addClass(button3, "panel-icon");
-		button3.textContent = "RAW";
-		button3.setAttribute("type", "raw");
-		child3.appendChild(button3);
+		common.results.types.forEach(t => {
+			let button = document.createElement("div");
+			common.addClass(button, "panel-icon");
+			button.textContent = t.toUpperCase();
+			button.setAttribute("type", t.toLowerCase());
+			child3.appendChild(button);
+		})
 
 		let button4 = document.createElement("div");
 		common.addClass(button4, "panel-icon");
@@ -229,7 +182,7 @@ function createPanel(content, id) {
 			if (event.button == 1 && type == "json") {
 				const blob = new Blob([content], {type: 'application/json;charset=utf-8'});
 				const url = URL.createObjectURL(blob);
-				var creating = browser.tabs.create(
+				browser.tabs.create(
 					{url: url}
 				);
 

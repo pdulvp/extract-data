@@ -112,7 +112,7 @@ function handleMessage(request, sender, sendResponse) {
 			change = true;
 			
 			updateContextMenu(sender.tab);
-			var sending = browser.runtime.sendMessage( { "action": "", "tabId": sender.tab.id, "result": results[sender.tab.id].tabResults } )
+			var sending = browser.runtime.sendMessage( { "action": "onResultChange", "tabId": sender.tab.id, "result": results[sender.tab.id].tabResults } )
 			sending.then((e) => {} , (e) => { });
 		}
 
@@ -200,48 +200,6 @@ function onClickNotification(notification) {
 
 browser.notifications.onClicked.addListener(onClickNotification);
 
-function encodeRegex(url) {
-	return url.replace(/([\.\?\[\]\(\)\\\^\$\{\}\+])/g, "\\$1");
-}
-
-function createNewRule(url, expression) {
-	return common.storage.getRules().then(storage => {
-		let ruleName = browser.i18n.getMessage("new_rule_name", ""+(storage.rules.length+1));
-		let storedRule = { id: common.uuidv4(), name: ruleName, sitematch: encodeRegex(url), items: [] };
-		storage.rules.push(storedRule);
-
-		let itemName = browser.i18n.getMessage("new_item_name", ""+(storedRule.items.length+1));
-		let item = { id: common.uuidv4(), name: itemName, expression: "" };
-		storedRule.items.push(item);
-		item.expression = expression;
-
-		return Promise.resolve({ storage: storage, rule: storedRule } );
-
-	}).then(e => {
-		return common.storage.setRules( e.storage ).then(ev => {
-			return Promise.resolve(e);
-		});
-	});
-}
-
-function createNewItem(ruleId, expression) {
-	return common.storage.getRules().then(storage => {
-		let storedRule = storage.rules.find(r => r.id == ruleId);
-		if (storedRule != null) {
-			let itemName = "Item #"+(storedRule.items.length+1);
-			let item = { id: common.uuidv4(), name: itemName, expression: "" };
-			storedRule.items.push(item);
-			item.expression = expression;
-			
-			return Promise.resolve({ storage: storage, rule: storedRule, item: item } );
-		}
-	}).then(e => {
-		return common.storage.setRules( e.storage ).then(ev => {
-			return Promise.resolve(e);
-		});
-	});
-}
-
 function highlightRule(ruleId, tabId) {
 	return common.storage.getRules().then(storage => {
 		let storedRule = storage.rules.find(r => r.id == ruleId);
@@ -254,24 +212,6 @@ function highlightRule(ruleId, tabId) {
 
 function editRule(ruleId, itemId) {
 	common.openOptions(ruleId, itemId);
-}
-
-function editItem(ruleId, itemId, expression) {
-	return common.storage.getRules().then(storage => {
-		let storedRule = storage.rules.find(r => r.id == ruleId);
-		if (storedRule != null) {
-			let storedItem = storedRule.items.find(i => i.id == itemId);
-			if (storedItem != null) {
-				storedItem.expression = expression;
-				return Promise.resolve({ storage: storage, rule: storedRule, item: storedItem } );
-			}
-		}
-	}).then(e => {
-		return common.storage.setRules( e.storage ).then(ev => {
-			return Promise.resolve(e);
-		});
-	});
-	
 }
 
 function getOrCreateMenu(data) {
@@ -381,7 +321,7 @@ function updateContextMenu(tab) {
 		onclick: event => {
 			var sending = browser.tabs.sendMessage(tab.id, { "action": "getContextMenuContext" } );
 			sending.then(element => {
-				return createNewRule(event.pageUrl, element.expression);
+				return common.storage.createRule(event.pageUrl, element.expression);
 
 			}).then(e => {
 				return browser.notifications.create("rule@"+e.rule.id, {
@@ -415,7 +355,7 @@ function updateContextMenu(tab) {
 				onclick: event => {
 					var sending = browser.tabs.sendMessage(tab.id, { "action": "getContextMenuContext" } );
 					sending.then(element => {
-						return createNewItem(rule.id, element.expression);
+						return common.storage.createItem(rule.id, element.expression);
 
 					}).then(e => {
 						return browser.notifications.create("item@"+e.rule.id+"@"+e.item.id, {
@@ -449,7 +389,7 @@ function updateContextMenu(tab) {
 					onclick: event => {
 						var sending = browser.tabs.sendMessage(tab.id, { "action": "getContextMenuContext" } );
 						sending.then(element => {
-							return editItem(rule.id, item.id, element.expression);
+							return common.storage.editItem(rule.id, item.id, element.expression);
 						
 						}).then(e => {
 							return browser.notifications.create("item@"+e.rule.id+"@"+e.item.id, {
@@ -458,7 +398,7 @@ function updateContextMenu(tab) {
 								"title": browser.i18n.getMessage("notification_edititem_title"),
 								"message": browser.i18n.getMessage("notification_edititem_description")
 							});
-							
+
 						}).then(e => {
 							setTimeout(ee => {
 								var clearing = browser.notifications.clear(e );
@@ -478,6 +418,10 @@ function updateContextMenu(tab) {
 							if (!itemValid) {
 								browser.contextMenus.update(`menu-item-${item.id}`, {
 									icons: {  "16": "ui/warn.svg" }
+								});
+							} else {
+								browser.contextMenus.update(`menu-item-${item.id}`, {
+									icons: {  "16": "ui/valid.svg" }
 								});
 							}
 						} else {

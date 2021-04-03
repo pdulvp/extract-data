@@ -22,6 +22,18 @@ var optionsUi = {
 		let left = document.getElementById("left");
 		var lastActiveId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
 		return lastActiveId;
+	},
+
+	activeItems: function() {
+		var cache = document.getElementById("table-cache");
+		var itemIds = Array.from(cache.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("id"));
+		return itemIds;
+	},
+
+	lastActiveItem: function() {
+		var cache = document.getElementById("table-cache");
+		var itemIds = Array.from(cache.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("id")).find(x => true);
+		return itemIds;
 	}
 }
 
@@ -39,22 +51,15 @@ function updateRules(response) {
 	Array.from(left.childNodes).filter(x => activeIds.includes(x.getAttribute("rule-id"))).forEach(x => common.addClass(x, "active"));
 }
 
-function createNewRule() {
-	let ruleName = browser.i18n.getMessage("new_rule_name", ""+(rules.length+1));
-	return { id: common.uuidv4(), name: ruleName, sitematch: "", items: [] };
-}
-
 common.registerEditor(document.getElementById("left"), editor => {
-	var lastActiveId = editor.getAttribute("rule-id");
-	let rule = rules.find(r => r.id == lastActiveId);
+	let rule = rules.find(r => r.id == editor.getAttribute("rule-id"));
 	if (rule != null) {
 		return rule.name;
 	}
 	return "";
 
 }, editor => {
-	var lastActiveId = editor.getAttribute("rule-id");
-	let rule = rules.find(r => r.id == lastActiveId);
+	let rule = rules.find(r => r.id == editor.getAttribute("rule-id"));
 	if (rule != null) {
 		rule.name = editor.value;
 	}
@@ -69,7 +74,7 @@ document.getElementById("left").addEventListener("keydown", event => {
 			rules = rules.filter(x => !ruleIds.includes(x.id));
 
 			if (rules.length == 0) {
-				rules.push(createNewRule());
+				rules.push(common.rules.create(rules.length+1));
 				nextId = rules[rules.length-1].id;
 			}
 			updateRules({rules: rules});
@@ -91,22 +96,12 @@ table.addEventListener("click", event => {
 	if (common.hasClass(target, "table-column")) {
 		target = target.parentNode;
 	}
-	if (common.hasClass(target, "table-column-wrapper-2")) {
-		target = target.parentNode;
-	}
-	if (common.hasClass(target, "table-column-wrapper")) {
-		target = target.parentNode;
-	}
-	if (common.hasClass(target, "table-column")) {
-		target = target.parentNode;
-	}
 	if (common.hasClass(target, "table-row")) {
 		clickOnItem(target.getAttribute("id"));
 	}
 });
 
 common.registerEditor(document.getElementById("table-cache"), editor => {
-	var left = document.getElementById("left");
 	var lastActiveId = optionsUi.lastActiveRule();
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
@@ -120,7 +115,6 @@ common.registerEditor(document.getElementById("table-cache"), editor => {
 	return "";
 
 }, editor => {
-	var left = document.getElementById("left");
 	var lastActiveId = optionsUi.lastActiveRule();
 	let rule = rules.find(r => r.id == lastActiveId);
 	if (rule) {
@@ -147,11 +141,10 @@ function findNextAfterDeletion(items, id) {
 
 document.getElementById("table-cache").addEventListener("keydown", event => {
 	if (event.code == "Delete") {
-		var left = document.getElementById("left");
 		var cache = document.getElementById("table-cache");
-		var itemIds = Array.from(cache.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("id"));
+		var itemIds = optionsUi.activeItems();
 		
-		var lastRuleId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+		var lastRuleId = optionsUi.lastActiveRule();
 		let rule = rules.find(r => r.id == lastRuleId);
 		
 		if (itemIds.length > 0) {
@@ -226,23 +219,22 @@ function setRuleResult(ruleResult) {
 	ruleResult.itemsResults.forEach(itemResult => {
 		setItemResult(itemResult);
 	});
+	var value = document.getElementById("table-column-value-text");
+	value.textContent = common.results.toContent(ruleResult, "json");
 }
 function setItemResult(itemResult) {
 	var table = document.getElementById("table-cache");
 	var row = Array.from(table.childNodes).find(e => e.id == itemResult.id);
 	let icon = Array.from(row.childNodes).find(e => e.getAttribute("class").indexOf("icon") > -1);
-	let value = Array.from(row.childNodes).find(e => e.getAttribute("class") == "table-column table-column-value");
 	if (icon) {
 		if (itemResult.valid) {
 			common.addClass(row, "valid");
 			common.removeClass(icon, "icon-warning");
 			common.addClass(icon, "icon-valid");
-			value.textContent = itemResult.value;
 		} else {
 			common.addClass(row, "warning");
 			common.removeClass(icon, "icon-valid");
 			common.addClass(icon, "icon-warning");
-			value.textContent = " ";
 		}
 	}
 }
@@ -298,10 +290,6 @@ function createCacheEntry(item) {
 	common.addClass(node, "table-row");
 
 	let child = null;
-	child = document.createElement("div");
-	common.addClass(child, "table-column table-column-icon");
-	child.textContent = item.icon;
-	node.appendChild(child);
 
 	child = document.createElement("input");
 	common.addClass(child, "table-column table-column-name");
@@ -320,6 +308,11 @@ function createCacheEntry(item) {
 	child.setAttribute("readonly", "readonly");
 	node.appendChild(child);
 
+	child = document.createElement("div");
+	common.addClass(child, "table-column table-column-icon");
+	child.textContent = item.icon;
+	node.appendChild(child);
+	
 	return node;
 }
 
@@ -413,7 +406,7 @@ document.getElementById("button-open").onclick = function (event) {
 };
 
  document.getElementById("button-ok").onclick = function (event) {
-	var lastRuleId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastRuleId = optionsUi.lastActiveRule();
 	if (lastRuleId != null) {
 		saveCurrentRule(lastRuleId);
 	}
@@ -437,12 +430,12 @@ document.getElementById("button-open").onclick = function (event) {
 
  document.getElementById("button-new-rule").onclick = function (event) {
 	console.log(rules);
-	rules.push(createNewRule());
+	rules.push(common.rules.create(rules.length+1));
 	updateRules( { rules: rules } );
  };
 
  document.getElementById("button-advanced").onclick = function (event) {
-	var lastRuleId = Array.from(left.childNodes).filter(x => common.hasClass(x, "active")).map(x => x.getAttribute("rule-id")).find(x => true);
+	var lastRuleId = optionsUi.lastActiveRule();
 	if (lastRuleId != null) {
 		saveCurrentRule(lastRuleId);
 	}
@@ -495,7 +488,7 @@ function restoreOptions(idIndex, itemId) {
 	common.storage.getRules().then(storage => {
 		if (storage.rules && Array.isArray(storage.rules)) {
 			if (storage.rules.length == 0) {
-				storage.rules.push(createNewRule());
+				storage.rules.push(common.rules.create(storage.rules.length+1));
 			}
 			updateRules( { rules: storage.rules } );
 			let ruleId = ruleIdIndex;
@@ -508,10 +501,10 @@ function restoreOptions(idIndex, itemId) {
 				clickOnItem(itemId);
 			}
 		} else {
-			updateRules( { rules: [ createNewRule() ] } );
+			updateRules( { rules: [ common.rules.create(1) ] } );
 		}
 	}, (error) => {
-		updateRules( { rules: [ createNewRule() ] } );
+		updateRules( { rules: [ common.rules.create(1) ] } );
 	});
 }
 

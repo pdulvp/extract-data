@@ -12,7 +12,63 @@ var compat = (typeof module === "object") ? require("./compat") : compat;
 var browser = compat.adaptBrowser();
 
 var common = {
-	
+	rules: {
+		create: function(index) {
+			let ruleName = browser.i18n.getMessage("new_rule_name", ""+(index));
+			return { id: common.uuidv4(), name: ruleName, sitematch: "", items: [] };
+		},
+
+		matchingRules: function(url) {
+			return common.storage.getRules().then(storage => {
+				let rules = storage.rules.filter(r => common.doesMatch(url, r.sitematch));
+				return Promise.resolve(rules);
+			});
+		}
+	},
+
+	results: {
+		types: ["json", "raw", "xls"],
+
+		toContent: function(ruleResult, type) {
+			if (ruleResult != null) {
+				if (type == "raw") {
+					let content = ruleResult.itemsResults.map(x => {
+						return `${x.value}`;
+					}).join("\n");
+						return content;
+		
+				} else if (type == "text") {
+					let content = ruleResult.itemsResults.filter(x => x.value != null).map(x => {
+						return `${x.value}`;
+					}).join("\n");
+					return content;
+		
+				} else if (type == "xls") {
+					let content = ruleResult.itemsResults.map(x => {
+						let name = x.item.name;
+						if (name != null) {
+							name = name.replace(/\t/g, '');
+						}
+						let value = x.value;
+						if (value != null) {
+							value = value.toString().replace(/\t/g, '');
+						}
+						return `${name}\t${value}`;
+					}).join("\n");
+					return content;
+		
+				} else if (type == "json") {
+					let content = { "rule": ruleResult.rule.name, items: [] };
+					ruleResult.itemsResults.forEach(x => {
+						content.items.push({ "name": x.item.name, "value": x.value != undefined ? x.value.join(", "): "!error", "values": x.value }); 
+					});
+					return JSON.stringify(content, null, 2);
+				}
+			}
+			return null;
+		}
+		
+	},
 	storage: {
 		listeners: [],
 
@@ -69,6 +125,63 @@ var common = {
 				}
 				common.storage.setRules(storage).then(e => {
 					resolve( storage );
+				});
+			});
+		}, 
+
+		createRule: function(url, expression) {
+			return common.storage.getRules().then(storage => {
+
+				let storedRule = common.rules.create(storage.rules.length+1);
+				storedRule.sitematch = common.encodeRegex(url);
+				storage.rules.push(storedRule);
+
+				let itemName = browser.i18n.getMessage("new_item_name", ""+(storedRule.items.length+1));
+				let item = { id: common.uuidv4(), name: itemName, expression: "" };
+				storedRule.items.push(item);
+				item.expression = expression;
+
+				return Promise.resolve({ storage: storage, rule: storedRule } );
+
+			}).then(e => {
+				return common.storage.setRules( e.storage ).then(ev => {
+					return Promise.resolve(e);
+				});
+			});
+		},
+
+		createItem: function(ruleId, expression) {
+			return common.storage.getRules().then(storage => {
+				let storedRule = storage.rules.find(r => r.id == ruleId);
+				if (storedRule != null) {
+					let itemName = "Item #"+(storedRule.items.length+1);
+					let item = { id: common.uuidv4(), name: itemName, expression: "" };
+					storedRule.items.push(item);
+					item.expression = expression;
+					
+					return Promise.resolve({ storage: storage, rule: storedRule, item: item } );
+				}
+
+			}).then(e => {
+				return common.storage.setRules( e.storage ).then(ev => {
+					return Promise.resolve(e);
+				});
+			});
+		},
+
+		editItem: function(ruleId, itemId, expression) {
+			return common.storage.getRules().then(storage => {
+				let storedRule = storage.rules.find(r => r.id == ruleId);
+				if (storedRule != null) {
+					let storedItem = storedRule.items.find(i => i.id == itemId);
+					if (storedItem != null) {
+						storedItem.expression = expression;
+						return Promise.resolve({ storage: storage, rule: storedRule, item: storedItem } );
+					}
+				}
+			}).then(e => {
+				return common.storage.setRules( e.storage ).then(ev => {
+					return Promise.resolve(e);
 				});
 			});
 		}
@@ -199,6 +312,10 @@ var common = {
 		});
 	},
 
+	encodeRegex: function(url) {
+		return url.replace(/([\.\?\[\]\(\)\\\^\$\{\}\+])/g, "\\$1");
+	},
+	
 	doesMatch: (url, sitematch) => {
 		if (sitematch == undefined || sitematch.length == 0) {
 			return false;

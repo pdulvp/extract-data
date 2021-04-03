@@ -30,34 +30,28 @@ var mutationObserver = new MutationObserver(function(mutations) {
 	currentObserver = setTimeout(reloadResults, 200);
 });
 
+mutationObserver.observe(document.documentElement, {
+	childList: true,
+	subtree: true,
+	attributes: false,
+	characterData: true
+});
+
 function reloadResults() {
 	currentObserver = null;
 	let resend = function(result) {
 		const sending = browser.runtime.sendMessage({ action: "setResult", result: result});
 		sending.then(x => {}, x => {}); 
 	}
-	common.storage.getRules().then(storage => {
-		if (storage.rules && Array.isArray(storage.rules)) {
-			
-			mutationObserver.observe(document.documentElement, {
-				childList: true,
-				subtree: true,
-				attributes: false,
-				characterData: true
-			});
+	common.rules.matchingRules(document.URL).then(rules => {
+		resend(evaluateResults( rules ));
 
-			resend(evaluateResults( { rules: storage.rules } ));
-		} else {
-			resend(evaluateResults( { rules: [] } ));
-		}
-	}, (error) => {
-		resend(evaluateResults( { rules: [] } ));
 	});
 }
 
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "highlight") {
-		let result = evaluateResults( { rules: [ request.rule ] } )
+		let result = evaluateResults( [ request.rule ] )
 		highlightResult(result);
 		sendResponse( result );
 
@@ -69,10 +63,9 @@ function handleMessage(request, sender, sendResponse) {
 	}
 }
 
-function evaluateResults(storage) {
-	let results = storage.rules.filter(r => common.doesMatch(document.URL, r.sitematch)).map(r => {
+function evaluateResults(rules) {
+	let results = rules.map(r => {
 		let items = r.items.map(i => {
-			
 			let elements = getElementsByExpression(i.expression);
 			let value = null;
 			if (elements != null) {
