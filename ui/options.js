@@ -222,6 +222,11 @@ function clickOnRule(previousRuleId, ruleId) {
 	}
 }
 
+function setRuleResult(ruleResult) {
+	ruleResult.itemsResults.forEach(itemResult => {
+		setItemResult(itemResult);
+	});
+}
 function setItemResult(itemResult) {
 	var table = document.getElementById("table-cache");
 	var row = Array.from(table.childNodes).find(e => e.id == itemResult.id);
@@ -378,19 +383,16 @@ common.registerDropdownMenu(document.getElementById("button-inspect"), document.
 		let tab = tabs.filter(x => x.id == tabId).find(x => true);
 		var lastActiveId = optionsUi.lastActiveRule();
 
-		browser.tabs.update(tab.id, { active: true}).then(result => {
+		browser.tabs.update(tab.id, { active: true }).then(result => {
 			var sending = browser.tabs.sendMessage(tab.id, { "action": "highlight", rule: rules.find(r => r.id == lastActiveId) } );
 			sending.then(result => {
-				result.rulesResults.find(r => r.id == lastActiveId).itemsResults.forEach(itemResult => {
-					setItemResult(itemResult);
-				});
+				setRuleResult(result.rulesResults.find(r => r.id == lastActiveId));
 			}, x => {});
 		}, x => {});
 		
 		//sendResponse({"response": "wait", "action" : request.action }); 
 
 	});
-
 
 });
 

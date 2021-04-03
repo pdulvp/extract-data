@@ -73,17 +73,16 @@ function equals(result1, result2) {
 function getResultOfTab(tabId) {
 	return new Promise((resolve, reject) => {
 		common.storage.getRules().then(storage => {
-			results[tabId].rules = storage.rules;
-			resolve(results[tabId]);
+			resolve({ rules: storage.rules, tabResults: results[tabId].tabResults, tabUrl: results[tabId].tabUrl });
 		});
 
-	}).then(tabResults => {
-		let matchingRules = tabResults.rulesResults.filter(r => {
-			let rule = tabResults.rules.filter(x => x.id == r.id)[0];
+	}).then(results => {
+		let matchingRules = results.tabResults.rulesResults.filter(r => {
+			let rule = results.rules.filter(x => x.id == r.id)[0];
 			if (rule == null) {
 				return false;
 			}
-			if (!common.doesMatch(tabResults.tabUrl, rule.sitematch)) {
+			if (!common.doesMatch(results.tabUrl, rule.sitematch)) {
 				return false;
 			}
 			return true;
@@ -94,8 +93,9 @@ function getResultOfTab(tabId) {
 
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setResult") {
-		if (!equals(results[sender.tab.id], request.result)) {
-			results[sender.tab.id] = request.result;
+		if (results[sender.tab.id] == undefined || !equals(results[sender.tab.id].tabResults, request.result)) {
+			results[sender.tab.id] = {};
+			results[sender.tab.id].tabResults = request.result;
 			results[sender.tab.id].tabUrl = sender.tab.url;
 			results[sender.tab.id].tabId = sender.tab.id;
 
@@ -123,7 +123,7 @@ function handleMessage(request, sender, sendResponse) {
 
 function updateBadge(tabId, animate) {
 	if (results[tabId] != null) {
-		let len = results[tabId].rulesResults.length;
+		let len = results[tabId].tabResults.rulesResults.length;
 		if (len != 0) {
 			browser.browserAction.setBadgeTextColor({ color: "#FFFFFF" });
 			browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
@@ -446,25 +446,23 @@ function updateContextMenu(tab) {
 			});
 
 			if (results[tab.id] != null) {
-				if (results[tab.id]) {
-					let values = results[tab.id].rulesResults.find(r => r.id == rule.id );
-					if (values != null) {
-						rule.items.forEach(item => {
-							let itemValue = values.itemsResults.find(i => i.id == item.id );
-							if (itemValue != null) {
-								let itemValid = itemValue.value != null;
-								if (!itemValid) {
-									browser.contextMenus.update(`menu-item-${item.id}`, {
-										icons: {  "16": "ui/warn.svg" }
-									});
-								}
-							} else {
+				let values = results[tab.id].tabResults.rulesResults.find(r => r.id == rule.id );
+				if (values != null) {
+					rule.items.forEach(item => {
+						let itemValue = values.itemsResults.find(i => i.id == item.id );
+						if (itemValue != null) {
+							let itemValid = itemValue.value != null;
+							if (!itemValid) {
 								browser.contextMenus.update(`menu-item-${item.id}`, {
 									icons: {  "16": "ui/warn.svg" }
 								});
 							}
-						});
-					}
+						} else {
+							browser.contextMenus.update(`menu-item-${item.id}`, {
+								icons: {  "16": "ui/warn.svg" }
+							});
+						}
+					});
 				}
 			}
 		});
