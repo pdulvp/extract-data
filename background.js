@@ -70,48 +70,57 @@ function equals(result1, result2) {
 	return true;
 }
 
-function getResultOfTab(tabId) {
-	return new Promise((resolve, reject) => {
-		common.storage.getRules().then(storage => {
-			resolve({ rules: storage.rules, tabResults: results[tabId].tabResults, tabUrl: results[tabId].tabUrl });
-		});
-
-	}).then(results => {
-		let matchingRules = results.tabResults.rulesResults.filter(r => {
-			let rule = results.rules.filter(x => x.id == r.id)[0];
+function updateResultsCacheWhenRuleChanged(storage) {
+	Object.keys(results).forEach(k => {
+		// remove results of deleted rules or if tabId url has changed.
+		let matchingRules = results[k].tabResults.rulesResults.filter(r => {
+			let rule = storage.rules.filter(x => x.id == r.id)[0];
 			if (rule == null) {
+				console.log("Discard result: "+r.id);
 				return false;
 			}
-			if (!common.doesMatch(results.tabUrl, rule.sitematch)) {
+			if (!common.doesMatch(results[k].tabUrl, rule.sitematch)) {
+				console.log("Discard result due to url change: "+r.id);
 				return false;
 			}
 			return true;
 		});
-		return Promise.resolve({ rulesResults : matchingRules });
+		results[k].tabResults.rulesResults = matchingRules;
 	})
+	return Promise.resolve(true);
+}
+
+function getResultOfTab(tabId) {
+	return new Promise((resolve, reject) => {
+		if (results[tabId] == undefined) {
+			reject({tabId: tabId, message: "No result for the given tab"});
+			return;
+		}
+		resolve( results[tabId].tabResults );
+	});
 }
 
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setResult") {
+		let change = false;
+
 		if (results[sender.tab.id] == undefined || !equals(results[sender.tab.id].tabResults, request.result)) {
 			results[sender.tab.id] = {};
 			results[sender.tab.id].tabResults = request.result;
 			results[sender.tab.id].tabUrl = sender.tab.url;
 			results[sender.tab.id].tabId = sender.tab.id;
-
-			updateBadge(sender.tab.id, true);
+			change = true;
+			
 			updateContextMenu(sender.tab);
-			var sending = browser.runtime.sendMessage( { "action": "onResultChange", "tabId": sender.tab.id, "result": request.result } )
+			var sending = browser.runtime.sendMessage( { "action": "", "tabId": sender.tab.id, "result": results[sender.tab.id].tabResults } )
 			sending.then((e) => {} , (e) => { });
-		} else {
-			updateBadge(sender.tab.id, false);
 		}
 
+		let value = results[sender.tab.id] != undefined ? results[sender.tab.id].tabResults.rulesResults.length : 0;
+		updateBadge(sender.tab.id, change, value);
+
 	} else if (request.action == "getResult") {
-		console.log("getResult");
 		getResultOfTab(request.tabId).then(tabResult => {
-			console.log("getResult2");
-			console.log(tabResult);
 			sendResponse( tabResult );
 		});
 		return true; //necessary for sendResponse call
@@ -121,30 +130,25 @@ function handleMessage(request, sender, sendResponse) {
 	}
 }
 
-function updateBadge(tabId, animate) {
-	if (results[tabId] != null) {
-		let len = results[tabId].tabResults.rulesResults.length;
-		if (len != 0) {
-			browser.browserAction.setBadgeTextColor({ color: "#FFFFFF" });
-			browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
+function updateBadge(tabId, animate, value) {
+	if (value != 0) {
+		browser.browserAction.setBadgeTextColor({ color: "#FFFFFF" });
+		browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
 
-			browser.browserAction.getBadgeText({tabId: tabId}).then(e => {
-				let newText = ""+len;
-				if (animate && e != null && e.length > 0) {
-					browser.browserAction.setBadgeBackgroundColor({ color: "#FF00FF" });
-					browser.browserAction.setBadgeText({ text: newText, tabId: tabId });
-					setTimeout(e => {
-						browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
-					}, 200);
-				} else if (e != newText) {
+		browser.browserAction.getBadgeText({tabId: tabId}).then(e => {
+			let newText = ""+value;
+			if (animate && e != null && e.length > 0) {
+				browser.browserAction.setBadgeBackgroundColor({ color: "#FF00FF" });
+				browser.browserAction.setBadgeText({ text: newText, tabId: tabId });
+				setTimeout(e => {
 					browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
-					browser.browserAction.setBadgeText({ text: newText, tabId: tabId });
-				}
-			});
-			 
-		} else {
-			browser.browserAction.setBadgeText({ text: "", tabId: tabId });
-		}
+				}, 200);
+			} else if (e != newText) {
+				browser.browserAction.setBadgeBackgroundColor({ color: "#29c74b" });
+				browser.browserAction.setBadgeText({ text: newText, tabId: tabId });
+			}
+		});
+			
 	} else {
 		browser.browserAction.setBadgeText({ text: "", tabId: tabId });
 	}
@@ -153,7 +157,17 @@ function updateBadge(tabId, animate) {
 browser.runtime.onMessage.addListener(handleMessage);
 
 function onStorageChange() {
-	common.storage.getRules().then(storage => updateRules(storage));
+	return common.storage.getRules().then(storage => {
+
+		return updateResultsCacheWhenRuleChanged(storage).then(e => {
+			return Promise.resolve(storage);
+		});
+
+	}).then(storage => {
+		return updateContextMenuOnRuleChanged(storage).then(e => {
+			return Promise.resolve(storage);
+		});
+	});
 }
 
 function onTabChange(activeInfo) {
@@ -190,75 +204,47 @@ function encodeRegex(url) {
 	return url.replace(/([\.\?\[\]\(\)\\\^\$\{\}\+])/g, "\\$1");
 }
 
-function createNewRule(event, tabId) {
-	common.storage.getRules().then(storage => {
+function createNewRule(url, expression) {
+	return common.storage.getRules().then(storage => {
 		let ruleName = browser.i18n.getMessage("new_rule_name", ""+(storage.rules.length+1));
-
-		let storedRule = { id: common.uuidv4(), name: ruleName, sitematch: encodeRegex(event.pageUrl), items: [] };
+		let storedRule = { id: common.uuidv4(), name: ruleName, sitematch: encodeRegex(url), items: [] };
 		storage.rules.push(storedRule);
 
 		let itemName = browser.i18n.getMessage("new_item_name", ""+(storedRule.items.length+1));
 		let item = { id: common.uuidv4(), name: itemName, expression: "" };
 		storedRule.items.push(item);
-		
-		var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
-		sending.then(element => {
-			item.expression = element.expression;
-			common.storage.setRules( storage ).then(e => {
-				browser.notifications.create("rule@"+storedRule.id, {
-					"type": "basic",
-                    "iconUrl" : browser.extension.getURL("icons/icon.svg"),
-					"title": browser.i18n.getMessage("notification_newrule_title"),
-					"message": browser.i18n.getMessage("notification_newrule_description")
-				}).then(e => {
-					  setTimeout(ee => {
-						var clearing = browser.notifications.clear(e );
-					  }, 5000);
-				}, e => {
-					console.log(e);
-				});
-			});
-		}, x => {
-			common.storage.setRules( storage );
+		item.expression = expression;
+
+		return Promise.resolve({ storage: storage, rule: storedRule } );
+
+	}).then(e => {
+		return common.storage.setRules( e.storage ).then(ev => {
+			return Promise.resolve(e);
 		});
 	});
 }
 
-function createNewItem(event, rule, tabId) {
-	common.storage.getRules().then(storage => {
-		let storedRule = storage.rules.find(r => r.id == rule.id);
+function createNewItem(ruleId, expression) {
+	return common.storage.getRules().then(storage => {
+		let storedRule = storage.rules.find(r => r.id == ruleId);
 		if (storedRule != null) {
 			let itemName = "Item #"+(storedRule.items.length+1);
 			let item = { id: common.uuidv4(), name: itemName, expression: "" };
 			storedRule.items.push(item);
-
-			var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
-			sending.then(element => {
-				item.expression = element.expression;
-				common.storage.setRules(storage).then(e => {
-					browser.notifications.create("item@"+storedRule.id+"@"+item.id, {
-						"type": "basic",
-						"iconUrl" : browser.extension.getURL("icons/icon.svg"),
-						"title": browser.i18n.getMessage("notification_newitem_title"),
-						"message": browser.i18n.getMessage("notification_newitem_description")
-					}).then(e => {
-						  setTimeout(ee => {
-							var clearing = browser.notifications.clear(e );
-						  }, 5000);
-					});
-				});
-			}, x => {
-				console.log("err");
-				common.storage.setRules( storage );
-			});
+			item.expression = expression;
+			
+			return Promise.resolve({ storage: storage, rule: storedRule, item: item } );
 		}
+	}).then(e => {
+		return common.storage.setRules( e.storage ).then(ev => {
+			return Promise.resolve(e);
+		});
 	});
 }
 
-
-function highlightRule(event, rule, tabId) {
-	common.storage.getRules().then(storage => {
-		let storedRule = storage.rules.find(r => r.id == rule.id);
+function highlightRule(ruleId, tabId) {
+	return common.storage.getRules().then(storage => {
+		let storedRule = storage.rules.find(r => r.id == ruleId);
 		if (storedRule != null) {
 			var sending = browser.tabs.sendMessage(tabId, { "action": "highlight", rule: storedRule } );
 			sending.then(result => {}, x => {});
@@ -270,33 +256,22 @@ function editRule(ruleId, itemId) {
 	common.openOptions(ruleId, itemId);
 }
 
-function editItem(event, rule, item, tabId) {
-	common.storage.getRules().then(storage => {
-		let storedRule = storage.rules.find(r => r.id == rule.id);
+function editItem(ruleId, itemId, expression) {
+	return common.storage.getRules().then(storage => {
+		let storedRule = storage.rules.find(r => r.id == ruleId);
 		if (storedRule != null) {
-			let storedItem = storedRule.items.find(i => i.id == item.id);
+			let storedItem = storedRule.items.find(i => i.id == itemId);
 			if (storedItem != null) {
-				var sending = browser.tabs.sendMessage(tabId, { "action": "getContextMenuContext" } );
-				sending.then(element => {
-					storedItem.expression = element.expression;
-					common.storage.setRules( storage ).then(e => {
-						browser.notifications.create("item@"+storedRule.id+"@"+storedItem.id, {
-							"type": "basic",
-							"iconUrl" : browser.extension.getURL("icons/icon.svg"),
-							"title": browser.i18n.getMessage("notification_edititem_title"),
-							"message": browser.i18n.getMessage("notification_edititem_description")
-						}).then(e => {
-							  setTimeout(ee => {
-								var clearing = browser.notifications.clear(e );
-							  }, 5000);
-						});
-					});
-				}, x => {
-					common.storage.setRules( storage );
-				});
+				storedItem.expression = expression;
+				return Promise.resolve({ storage: storage, rule: storedRule, item: storedItem } );
 			}
 		}
+	}).then(e => {
+		return common.storage.setRules( e.storage ).then(ev => {
+			return Promise.resolve(e);
+		});
 	});
+	
 }
 
 function getOrCreateMenu(data) {
@@ -306,7 +281,7 @@ function getOrCreateMenu(data) {
 	}
 }
 
-function updateRules(storage) {
+function updateContextMenuOnRuleChanged(storage) {
 	getOrCreateMenu({
 		id: `menu-new-rule`,
 		title: browser.i18n.getMessage("menu_new_rule"),
@@ -320,7 +295,6 @@ function updateRules(storage) {
 		});
 	}
 	storage.rules.forEach(rule => {
-
 		getOrCreateMenu({
 			id: `menu-rule-${rule.id}`,
 			title: `${rule.name}`,
@@ -377,6 +351,8 @@ function updateRules(storage) {
 		delete menus[m.id];
 		browser.contextMenus.remove(m.id);
 	});
+	
+	return Promise.resolve(true);
 }
 
 function allowExtension(urlString) {
@@ -402,8 +378,23 @@ function allowExtension(urlString) {
 function updateContextMenu(tab) {
 	let createRule = allowExtension(tab.url);
 	browser.contextMenus.update(`menu-new-rule`, {
-		onclick: e => {
-			createNewRule(e, tab.id);
+		onclick: event => {
+			var sending = browser.tabs.sendMessage(tab.id, { "action": "getContextMenuContext" } );
+			sending.then(element => {
+				return createNewRule(event.pageUrl, element.expression);
+
+			}).then(e => {
+				return browser.notifications.create("rule@"+e.rule.id, {
+						"type": "basic",
+						"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+						"title": browser.i18n.getMessage("notification_newrule_title"),
+						"message": browser.i18n.getMessage("notification_newrule_description")
+				});
+			}).then(e => {
+				setTimeout(ee => {
+					browser.notifications.clear(e );
+				}, 5000);
+			});
 		},
 		visible: createRule
 	});
@@ -421,13 +412,29 @@ function updateContextMenu(tab) {
 				visible: match
 			});
 			browser.contextMenus.update(`menu-new-item-${rule.id}`, {
-				onclick: e => {
-					createNewItem(e, rule, tab.id);
+				onclick: event => {
+					var sending = browser.tabs.sendMessage(tab.id, { "action": "getContextMenuContext" } );
+					sending.then(element => {
+						return createNewItem(rule.id, element.expression);
+
+					}).then(e => {
+						return browser.notifications.create("item@"+e.rule.id+"@"+e.item.id, {
+							"type": "basic",
+							"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+							"title": browser.i18n.getMessage("notification_newitem_title"),
+							"message": browser.i18n.getMessage("notification_newitem_description")
+						});
+
+					}).then(e => {
+						setTimeout(ee => {
+							var clearing = browser.notifications.clear(e );
+						}, 5000);
+					});
 				}
 			});
 			browser.contextMenus.update(`menu-highlight-${rule.id}`, {
 				onclick: e => {
-					highlightRule(e, rule, tab.id);
+					highlightRule(rule.id, tab.id);
 				}
 			});
 			browser.contextMenus.update(`menu-edit-${rule.id}`, {
@@ -439,14 +446,30 @@ function updateContextMenu(tab) {
 			rule.items.forEach(item => {
 				browser.contextMenus.update(`menu-item-${item.id}`, {
 					title: browser.i18n.getMessage("menu_edit_item", item.name),
-					onclick: e => {
-						editItem(e, rule, item, tab.id);
+					onclick: event => {
+						var sending = browser.tabs.sendMessage(tab.id, { "action": "getContextMenuContext" } );
+						sending.then(element => {
+							return editItem(rule.id, item.id, element.expression);
+						
+						}).then(e => {
+							return browser.notifications.create("item@"+e.rule.id+"@"+e.item.id, {
+								"type": "basic",
+								"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+								"title": browser.i18n.getMessage("notification_edititem_title"),
+								"message": browser.i18n.getMessage("notification_edititem_description")
+							});
+							
+						}).then(e => {
+							setTimeout(ee => {
+								var clearing = browser.notifications.clear(e );
+							}, 5000);
+						});
 					}
 				});
 			});
 
-			if (results[tab.id] != null) {
-				let values = results[tab.id].tabResults.rulesResults.find(r => r.id == rule.id );
+			getResultOfTab(tab.id).then(tabResult => {
+				let values = tabResult.rulesResults.find(r => r.id == rule.id );
 				if (values != null) {
 					rule.items.forEach(item => {
 						let itemValue = values.itemsResults.find(i => i.id == item.id );
@@ -464,11 +487,19 @@ function updateContextMenu(tab) {
 						}
 					});
 				}
-			}
+			}).catch(error => {
+				// Nothing here
+				console.log("Error: ");
+				console.log(error);
+			});
+
+			
 		});
 
 		browser.contextMenus.update(`menu-new-rule-separator`, {
 			visible: anyMatch && createRule
 		});
 	});
+
+	return Promise.resolve(true);
 }
