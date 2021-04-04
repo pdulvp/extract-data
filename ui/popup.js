@@ -26,7 +26,7 @@ function reloadRules() {
 			return;
 		}
 	
-		let rulesRenders = results.rulesResults.map(r => {
+		let rulesRenders = results.rulesResults.filter(r => r.rule.realId == undefined).map(r => {
 			let rule = r.rule;
 			let items = r.itemsResults.filter(x => x.value != null);
 			if (items.length > 0) {

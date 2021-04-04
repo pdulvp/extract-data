@@ -54,7 +54,11 @@ function handleMessage(request, sender, sendResponse) {
 		let result = evaluateResults( [ request.rule ] )
 		highlightResult(result);
 		sendResponse( result );
-
+		
+	} else if (request.action == "reloadResults") {
+		console.log("Receive on tab: reloadResults");
+		reloadResults();
+		
 	} else if (request.action == "getContextMenuContext") {
 		if (clickedElement != null) {
 			highlight(clickedElement);
@@ -187,7 +191,6 @@ function getElementsByPredefinedExpression(path) {
 			} }
 		} }
 	};
-	console.log(object);
 	try {
 		let root = object;
 		let evaluation = path.split(".");
@@ -195,7 +198,11 @@ function getElementsByPredefinedExpression(path) {
 			if (root != undefined) {
 				let t = evaluation[i];
 				let t2= root[t];
-				root = t2();
+				if (t2 != undefined) {
+					root = t2();
+				} else {
+					return null;
+				}
 			}
 		}
 		if (typeof root === 'object' && root != undefined) {

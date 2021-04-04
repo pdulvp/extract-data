@@ -1,3 +1,4 @@
+
 /* 
  This Code is published under the terms and conditions of the CC-BY-NC-ND-4.0
  (https://creativecommons.org/licenses/by-nc-nd/4.0)
@@ -7,7 +8,6 @@
  SPDX-License-Identifier: CC-BY-NC-ND-4.0
  @author: pdulvp@laposte.net
  */
-
 var browser = compat.adaptBrowser();
 var rules = [];
 
@@ -222,6 +222,7 @@ function setRuleResult(ruleResult) {
 	var value = document.getElementById("table-column-value-text");
 	value.textContent = common.results.toContent(ruleResult, "json");
 }
+
 function setItemResult(itemResult) {
 	var table = document.getElementById("table-cache");
 	var row = Array.from(table.childNodes).find(e => e.id == itemResult.id);
@@ -312,7 +313,7 @@ function createCacheEntry(item) {
 	common.addClass(child, "table-column table-column-icon");
 	child.textContent = item.icon;
 	node.appendChild(child);
-	
+
 	return node;
 }
 
@@ -372,17 +373,27 @@ common.registerDropdownMenu(document.getElementById("button-inspect"), document.
 	console.log(event);
 	let tabId = event.target.getAttribute("tab-id");
 	browser.tabs.query({}, (tabs) => {
-		console.log(tabs);
-		let tab = tabs.filter(x => x.id == tabId).find(x => true);
-		var lastActiveId = optionsUi.lastActiveRule();
-
-		browser.tabs.update(tab.id, { active: true }).then(result => {
-			var sending = browser.tabs.sendMessage(tab.id, { "action": "highlight", rule: rules.find(r => r.id == lastActiveId) } );
-			sending.then(result => {
-				setRuleResult(result.rulesResults.find(r => r.id == lastActiveId));
-			}, x => {});
-		}, x => {});
+		let temporaryRules = JSON.parse(JSON.stringify(rules));
+		temporaryRules.forEach(r => {
+			r.realId = r.id;
+			r.id = common.uuidv4();
+		});
 		
+		common.storage.setRules({ rules: temporaryRules }, true).then(e => {
+			let tab = tabs.filter(x => x.id == tabId).find(x => true);
+			var lastActiveId = optionsUi.lastActiveRule();
+	
+			if (tab != undefined) {
+				browser.tabs.update(tab.id, { active: true }).then(result => {
+					browser.tabs.sendMessage(tab.id, { "action": "reloadResults" } );
+				}, x => {});
+			}
+		}).catch(e => {
+			console.log("error");
+			console.log(e);
+			
+
+		});
 		//sendResponse({"response": "wait", "action" : request.action }); 
 
 	});
@@ -413,10 +424,15 @@ document.getElementById("button-open").onclick = function (event) {
 	
 	common.storage.setRules({
 		"rules": rules
+
+	}).then(() => {
+		return common.storage.cleanTemporaryRules();
+	
 	}).then(() => {
 		common.storage.removeRulesChangedListener(logStorageChange);
 		window.close();
-	}, (error) => {
+
+	}).catch(error => {
 		console.log(error);
 		common.storage.removeRulesChangedListener(logStorageChange);
 		window.close();
@@ -424,8 +440,15 @@ document.getElementById("button-open").onclick = function (event) {
  };
 
  document.getElementById("button-cancel").onclick = function (event) {
-	common.storage.removeRulesChangedListener(logStorageChange);
-	window.close();
+	common.storage.cleanTemporaryRules().then(e => {
+		common.storage.removeRulesChangedListener(logStorageChange);
+		window.close();
+
+	}).catch(error => {
+		console.log(error);
+		common.storage.removeRulesChangedListener(logStorageChange);
+		window.close();
+	});
  };
 
  document.getElementById("button-new-rule").onclick = function (event) {
@@ -509,7 +532,11 @@ function restoreOptions(idIndex, itemId) {
 }
 
 function logStorageChange(changes) {
-	restoreOptions();
+	console.log("Receive reload rules");
+	console.log(changes);
+	if (changes.temporaryRules == undefined) {
+		restoreOptions();
+	}
 }
 
 document.getElementById("label-site").textContent = browser.i18n.getMessage("label_site");
@@ -531,6 +558,22 @@ common.storage.addRulesChangedListener(logStorageChange);
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setSelection") {
 		restoreOptions(request.initialRule, request.initialItem);
+	}
+	if (request.action == "onResultChange") {
+		console.log("Receive on options: onResultChange");
+		console.log(request);
+
+		
+		var lastActiveId = optionsUi.lastActiveRule();
+		let ruleResult = request.result.rulesResults.find(x => x.rule.realId == lastActiveId);
+		if (ruleResult) {
+			setRuleResult(ruleResult);
+
+			browser.tabs.update(request.tabId, { active: true }).then(result => {
+				browser.tabs.sendMessage(request.tabId, { "action": "highlight", "rule": ruleResult.rule } );
+			}, x => {});
+
+		}
 	}
 }
 

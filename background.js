@@ -116,7 +116,7 @@ function handleMessage(request, sender, sendResponse) {
 			sending.then((e) => {} , (e) => { });
 		}
 
-		let value = results[sender.tab.id] != undefined ? results[sender.tab.id].tabResults.rulesResults.length : 0;
+		let value = results[sender.tab.id] != undefined ? results[sender.tab.id].tabResults.rulesResults.filter(r => r.rule.realId == undefined).length : 0;
 		updateBadge(sender.tab.id, change, value);
 
 	} else if (request.action == "getResult") {

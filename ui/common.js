@@ -21,7 +21,11 @@ var common = {
 		matchingRules: function(url) {
 			return common.storage.getRules().then(storage => {
 				let rules = storage.rules.filter(r => common.doesMatch(url, r.sitematch));
-				return Promise.resolve(rules);
+
+				return common.storage.getRules(true).then(storage => {
+					let rules2 = storage.rules.filter(r => common.doesMatch(url, r.sitematch));
+					return Promise.resolve(rules.concat(rules2));
+				});
 			});
 		}
 	},
@@ -62,7 +66,7 @@ var common = {
 					ruleResult.itemsResults.forEach(x => {
 						content.items.push({ "name": x.item.name, "value": x.value != undefined ? x.value.join(", "): "!error", "values": x.value }); 
 					});
-					return JSON.stringify(content, null, 2);
+					return JSON.stringify(content, null, "  ");
 				}
 			}
 			return null;
@@ -72,15 +76,16 @@ var common = {
 	storage: {
 		listeners: [],
 
-		getRules: function() {
+		getRules: function(temporary) {
 			return new Promise(function(resolve, reject) {
 				browser.storage.local.get('version').then(versionStorage => {
-					browser.storage.local.get('rules').then((ruleStorage) => {
+					let key = temporary === true ? 'temporaryRules' : 'rules';
+					browser.storage.local.get(key).then((ruleStorage) => {
 						return common.storage.migrateRules(ruleStorage, versionStorage.version, browser.runtime.getManifest().version);
 					
 					}).then(ruleStorage => {
-						if (ruleStorage.rules && Array.isArray(ruleStorage.rules)) {
-							resolve( { rules: ruleStorage.rules } );
+						if (ruleStorage[key] && Array.isArray(ruleStorage[key])) {
+							resolve( { rules: ruleStorage[key] } );
 						} else {
 							resolve( { rules: [] } );
 						}
@@ -91,9 +96,16 @@ var common = {
 			});
 		},
 
-		setRules: function(rulesStorage) {
+		cleanTemporaryRules: function() {
 			let storage = {};
-			storage.rules = rulesStorage.rules;
+			storage['temporaryRules'] = [];
+			return browser.storage.local.set(storage);
+		},
+
+		setRules: function(rulesStorage, temporary) {
+			let key = temporary === true ? 'temporaryRules' : 'rules';
+			let storage = {};
+			storage[key] = rulesStorage.rules;
 			storage.version = browser.runtime.getManifest().version;
 			return browser.storage.local.set(storage);
 		},
