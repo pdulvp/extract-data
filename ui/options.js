@@ -220,22 +220,24 @@ function setRuleResult(ruleResult) {
 		setItemResult(itemResult);
 	});
 	var value = document.getElementById("table-column-value-text");
-	value.textContent = common.results.toContent(ruleResult, "json");
+	value.value = common.results.toContent(ruleResult, optionsUi.activeType);
 }
 
 function setItemResult(itemResult) {
 	var table = document.getElementById("table-cache");
 	var row = Array.from(table.childNodes).find(e => e.id == itemResult.id);
-	let icon = Array.from(row.childNodes).find(e => e.getAttribute("class").indexOf("icon") > -1);
-	if (icon) {
-		if (itemResult.valid) {
-			common.addClass(row, "valid");
-			common.removeClass(icon, "icon-warning");
-			common.addClass(icon, "icon-valid");
-		} else {
-			common.addClass(row, "warning");
-			common.removeClass(icon, "icon-valid");
-			common.addClass(icon, "icon-warning");
+	if (row) {
+		let icon = Array.from(row.childNodes).find(e => e.getAttribute("class").indexOf("icon") > -1);
+		if (icon) {
+			if (itemResult.valid) {
+				common.addClass(row, "valid");
+				common.removeClass(icon, "icon-warning");
+				common.addClass(icon, "icon-valid");
+			} else {
+				common.addClass(row, "warning");
+				common.removeClass(icon, "icon-valid");
+				common.addClass(icon, "icon-warning");
+			}
 		}
 	}
 }
@@ -552,6 +554,42 @@ document.getElementById("table-column-value").textContent = browser.i18n.getMess
 document.getElementById("table-column-expression-text").textContent = browser.i18n.getMessage("table_column_expression");
 
 
+
+document.getElementById("table-values-header").innerHTML += common.results.types.map(x => {
+	return `<div id="table-column-value" data-type="${x}" class="table-column table-column-value-switch">${x}</div>`
+}).join("");
+let switchType = function(type) {
+	optionsUi.activeType = type;
+	[...document.getElementsByClassName("table-column-value-switch")].forEach(x => {
+		if (x.getAttribute("data-type") == type) {
+			common.addClass(x, "active");
+		} else {
+			common.removeClass(x, "active");
+		}
+	});
+};
+[...document.getElementsByClassName("table-column-value-switch")].forEach(x => {
+	x.onclick = function(e) {
+		let type = e.target.closest("div").getAttribute("data-type");
+		switchType(type);
+		setActiveResult();
+	}
+});
+switchType(common.results.types[0]);
+
+
+function setActiveResult() {
+	var lastActiveId = optionsUi.lastActiveRule();
+	if (optionsUi.currentResult != undefined) {
+		let ruleResult = optionsUi.currentResult.rulesResults.find(x => x.rule.realId == lastActiveId);
+		if (ruleResult) {
+			setRuleResult(ruleResult);
+			return ruleResult;
+		}
+	}
+	return null;
+}
+
 document.addEventListener('DOMContentLoaded', restoreWindow);
 common.storage.addRulesChangedListener(logStorageChange);
 
@@ -562,17 +600,12 @@ function handleMessage(request, sender, sendResponse) {
 	if (request.action == "onResultChange") {
 		console.log("Receive on options: onResultChange");
 		console.log(request);
-
-		
-		var lastActiveId = optionsUi.lastActiveRule();
-		let ruleResult = request.result.rulesResults.find(x => x.rule.realId == lastActiveId);
-		if (ruleResult) {
-			setRuleResult(ruleResult);
-
+		optionsUi.currentResult = request.result;
+		let currentRuleResult = setActiveResult();
+		if (currentRuleResult != undefined) {
 			browser.tabs.update(request.tabId, { active: true }).then(result => {
-				browser.tabs.sendMessage(request.tabId, { "action": "highlight", "rule": ruleResult.rule } );
+				browser.tabs.sendMessage(request.tabId, { "action": "highlight", "rule": currentRuleResult.rule } );
 			}, x => {});
-
 		}
 	}
 }

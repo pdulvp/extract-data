@@ -37,13 +37,19 @@ var common = {
 			if (ruleResult != null) {
 				if (type == "raw") {
 					let content = ruleResult.itemsResults.map(x => {
-						return `${x.value}`;
+						if (x.value != null) {
+							return `${x.value.join("\n")}`;
+						}
+						return "!error";
 					}).join("\n");
-						return content;
+					return content;
 		
-				} else if (type == "text") {
+				} else if (type == "raw") {
 					let content = ruleResult.itemsResults.filter(x => x.value != null).map(x => {
-						return `${x.value}`;
+						if (x.value != null) {
+							return `${x.value.join("\n")}`;
+						}
+						return "!error";
 					}).join("\n");
 					return content;
 		
@@ -55,7 +61,7 @@ var common = {
 						}
 						let value = x.value;
 						if (value != null) {
-							value = value.toString().replace(/\t/g, '');
+							value = value.join("\n").replace(/\t/g, '');
 						}
 						return `${name}\t${value}`;
 					}).join("\n");

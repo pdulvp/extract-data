@@ -190,11 +190,14 @@ a {
 
 .table-column-icon { width: 16px; background-repeat: no-repeat; background-position: center; }
 
-.table-column-expression, .table-column-value, .table-column-editor {
+.table-column-expression, .table-column-value, .table-column-editor, .table-column-value-text {
   flex-grow: 1; -webkit-flex-grow: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   padding-right: 4px;
+}
+.table-column-value-switch.active {
+  background-color: yellowgreen;
 }
 
 textarea {
