@@ -143,6 +143,7 @@ var compat = {
                         });
                     });
                 },
+                getURL: chrome.runtime.getURL,
                 onMessage: chrome.runtime.onMessage, 
                 getManifest: chrome.runtime.getManifest
             },

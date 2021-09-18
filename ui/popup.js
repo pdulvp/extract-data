@@ -190,7 +190,7 @@ function createPanel(content, id) {
 					common.copyToClipboard(content);
 					browser.notifications.create(common.uuidv4(), {
 						"type": "basic",
-						"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+						"iconUrl" : browser.runtime.getURL("icons/icon.svg"),
 						"title": browser.i18n.getMessage("notification_copied_title"),
 						"message": browser.i18n.getMessage("notification_copied_description"),
 					}).then(e => {

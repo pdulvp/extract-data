@@ -326,7 +326,7 @@ function updateContextMenu(tab) {
 			}).then(e => {
 				return browser.notifications.create("rule@"+e.rule.id, {
 						"type": "basic",
-						"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+						"iconUrl" : browser.runtime.getURL("icons/icon.svg"),
 						"title": browser.i18n.getMessage("notification_newrule_title"),
 						"message": browser.i18n.getMessage("notification_newrule_description")
 				});
@@ -360,7 +360,7 @@ function updateContextMenu(tab) {
 					}).then(e => {
 						return browser.notifications.create("item@"+e.rule.id+"@"+e.item.id, {
 							"type": "basic",
-							"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+							"iconUrl" : browser.runtime.getURL("icons/icon.svg"),
 							"title": browser.i18n.getMessage("notification_newitem_title"),
 							"message": browser.i18n.getMessage("notification_newitem_description")
 						});
@@ -394,7 +394,7 @@ function updateContextMenu(tab) {
 						}).then(e => {
 							return browser.notifications.create("item@"+e.rule.id+"@"+e.item.id, {
 								"type": "basic",
-								"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+								"iconUrl" : browser.runtime.getURL("icons/icon.svg"),
 								"title": browser.i18n.getMessage("notification_edititem_title"),
 								"message": browser.i18n.getMessage("notification_edititem_description")
 							});

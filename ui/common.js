@@ -350,7 +350,7 @@ var common = {
 			query += `&initialItem=${initialItemId}`;
 		}
 
-		var popupURL = browser.extension.getURL("ui/options.html");
+		var popupURL = browser.runtime.getURL("ui/options.html");
 		let createData = {
 			type: "popup",
 			allowScriptsToClose: true,
