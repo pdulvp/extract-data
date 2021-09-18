@@ -83,7 +83,7 @@ function getResultOfActiveTab() {
 
 function getRuleContent(ruleId, type) {
 	if (ruleId != null) {
-		getResultOfActiveTab().then((results) => {
+		return getResultOfActiveTab().then((results) => {
 			console.log(results);
 			let ruleResult = results.rulesResults.find(r => r.id == ruleId);
 			return common.results.toContent(ruleResult, type);
@@ -177,29 +177,30 @@ function createPanel(content, id) {
 				common.openOptions(ruleId);
 				return;
 			}
-			let content = getRuleContent(ruleId, type);
+			getRuleContent(ruleId, type).then(content => {
+				
+				if (event.button == 1 && type == "json") {
+					const blob = new Blob([content], {type: 'application/json;charset=utf-8'});
+					const url = URL.createObjectURL(blob);
+					browser.tabs.create(
+						{url: url}
+					);
 
-			if (event.button == 1 && type == "json") {
-				const blob = new Blob([content], {type: 'application/json;charset=utf-8'});
-				const url = URL.createObjectURL(blob);
-				browser.tabs.create(
-					{url: url}
-				);
-
-			} else {
-				common.copyToClipboard(content);
-				browser.notifications.create(common.uuidv4(), {
-					"type": "basic",
-					"iconUrl" : browser.extension.getURL("icons/icon.svg"),
-					"title": browser.i18n.getMessage("notification_copied_title"),
-					"message": browser.i18n.getMessage("notification_copied_description"),
-				}).then(e => {
-					window.close();
-					  setTimeout(ee => {
-						browser.notifications.clear(e);
-					  }, 2000);
-				});
-			}
+				} else {
+					common.copyToClipboard(content);
+					browser.notifications.create(common.uuidv4(), {
+						"type": "basic",
+						"iconUrl" : browser.extension.getURL("icons/icon.svg"),
+						"title": browser.i18n.getMessage("notification_copied_title"),
+						"message": browser.i18n.getMessage("notification_copied_description"),
+					}).then(e => {
+						window.close();
+						setTimeout(ee => {
+							browser.notifications.clear(e);
+						}, 2000);
+					});
+				}
+			});
 		}
 	};
 
