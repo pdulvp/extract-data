@@ -229,7 +229,10 @@ var common = {
 				menu.setAttribute("style", `display:none;`);
 			}
 		});
-		
+		let clickListener = menuEvent => {
+			menu.setAttribute("style", `display:none;`);
+			dispatch(menuEvent);
+		};
 		let displayPopup = function (event) {
 			
 			let opening = onopening == null ? new Promise( x => true ) : onopening;
@@ -239,10 +242,7 @@ var common = {
 				let left = event.target.offsetLeft - size + event.target.offsetWidth;
 				let attr = `display:block; left:${left}px; top:${top}px;`;
 				menu.setAttribute("style", attr);
-				menu.addEventListener("click", menuEvent => {
-					menu.setAttribute("style", `display:none;`);
-					dispatch(menuEvent);
-				}, { useCapture: true } );
+				menu.addEventListener("click", clickListener, { useCapture: true } );
 			});
 		};
 
