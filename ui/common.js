@@ -70,7 +70,7 @@ var common = {
 				} else if (type == "json") {
 					let content = { "rule": ruleResult.rule.name, items: [] };
 					ruleResult.itemsResults.forEach(x => {
-						content.items.push({ "name": x.item.name, "value": x.value != undefined ? x.value.join(", "): "!error", "values": x.value }); 
+						content.items.push({ "name": x.item.name, "values": x.value }); 
 					});
 					return JSON.stringify(content, null, "  ");
 				}
