@@ -580,8 +580,11 @@ switchType(common.results.types[0]);
 
 function setActiveResult() {
 	var lastActiveId = optionsUi.lastActiveRule();
-	if (optionsUi.currentResult != undefined) {
+	if (optionsUi.currentResult != undefined && lastActiveId != undefined) {
 		let ruleResult = optionsUi.currentResult.rulesResults.find(x => x.rule.realId == lastActiveId);
+		if (!ruleResult) {
+			ruleResult = optionsUi.currentResult.rulesResults.find(x => x.rule.id == lastActiveId);
+		}
 		if (ruleResult) {
 			setRuleResult(ruleResult);
 			return ruleResult;
@@ -603,6 +606,7 @@ function handleMessage(request, sender, sendResponse) {
 		optionsUi.currentResult = request.result;
 		let currentRuleResult = setActiveResult();
 		if (currentRuleResult != undefined) {
+			clickOnRule(null, currentRuleResult.rule.realId ? currentRuleResult.rule.realId : currentRuleResult.rule.id);
 			browser.tabs.update(request.tabId, { active: true }).then(result => {
 				browser.tabs.sendMessage(request.tabId, { "action": "highlight", "rule": currentRuleResult.rule } );
 			}, x => {});
