@@ -13,6 +13,10 @@ var results = [];
 var browser = compat.adaptBrowser();
 let menus = {};
 
+function strEq(s1, s2) {
+	return s1 != null && s1 != undefined && btoa(s1) === btoa(s2);
+}
+
 function equals(result1, result2) {
 	if (result1 == undefined) {
 		return (result2 == undefined);
@@ -33,13 +37,13 @@ function equals(result1, result2) {
 		} else if (i1.valid != i2.valid) {
 			return true;
 
-		} else if (i1.value != i2.value) {
+		} else if (!strEq(i1.value, i2.value)) {
 			return true;
 
-		} else if (i1.item.name != i2.item.name) {
+		} else if (!strEq(i1.item.name, i2.item.name)) {
 			return true;
 
-		} else if (i1.item.expression != i2.item.expression) {
+		} else if (!strEq(i1.item.expression, i2.item.expression)) {
 			return true;
 
 		}
@@ -52,7 +56,7 @@ function equals(result1, result2) {
 		if (r2 == undefined) {
 			return true;
 
-		} else if (r1.rule.name != r2.rule.name) {
+		} else if (!strEq(r1.rule.name, r2.rule.name)) {
 			return true;
 
 		} else if (r1.itemsResults.length != r2.itemsResults.length) {
