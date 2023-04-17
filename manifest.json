@@ -23,7 +23,8 @@
     "clipboardWrite",
     "notifications",
     "contextMenus",
-    "tabs"
+    "tabs",
+    "nativeMessaging"
   ],
   "default_locale": "en",
   "browser_action": {

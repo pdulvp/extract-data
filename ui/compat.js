@@ -145,7 +145,9 @@ var compat = {
                 },
                 getURL: chrome.runtime.getURL,
                 onMessage: chrome.runtime.onMessage, 
-                getManifest: chrome.runtime.getManifest
+                getManifest: chrome.runtime.getManifest,
+                connectNative: chrome.runtime.connectNative,
+                sendNativeMessage: chrome.runtime.sendNativeMessage
             },
             i18n: chrome.i18n,
             extension: chrome.extension,

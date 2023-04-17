@@ -104,6 +104,8 @@ function getResultOfTab(tabId) {
 	});
 }
 
+let port = browser.runtime.connectNative("extractdata.nativeMessaging");
+
 function handleMessage(request, sender, sendResponse) {
 	if (request.action == "setResult") {
 		let change = false;
@@ -118,11 +120,17 @@ function handleMessage(request, sender, sendResponse) {
 			updateContextMenu(sender.tab);
 			var sending = browser.runtime.sendMessage( { "action": "onResultChange", "tabId": sender.tab.id, "result": results[sender.tab.id].tabResults } )
 			sending.then((e) => {} , (e) => { });
+			
+			if (port != null && results[sender.tab.id] != undefined) {
+				let trans = results[sender.tab.id].tabResults.rulesResults.filter(r => r.rule.realId == undefined);
+				trans = trans.map(res => JSON.parse(common.results.toContent(res, "json")));
+				port.postMessage(trans);
+			}
 		}
-
+		
 		let value = results[sender.tab.id] != undefined ? results[sender.tab.id].tabResults.rulesResults.filter(r => r.rule.realId == undefined).length : 0;
 		updateBadge(sender.tab.id, change, value);
-
+		
 	} else if (request.action == "getResult") {
 		getResultOfTab(request.tabId).then(tabResult => {
 			sendResponse( tabResult );
